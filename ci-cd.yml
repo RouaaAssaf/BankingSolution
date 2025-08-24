@@ -1,0 +1,38 @@
+name: BankingSolution CI/CD
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '9.0.x'  # match your local .NET version
+
+      - name: Install EF Core CLI
+        run: dotnet tool install --global dotnet-ef --version 9.0.0
+
+      - name: Add dotnet tools to PATH
+        run: echo "${{ env.USERPROFILE }}\.dotnet\tools" >> $GITHUB_PATH
+
+      - name: Restore NuGet packages
+        run: dotnet restore
+
+      - name: Build solution
+        run: dotnet build --no-restore --configuration Release
+
+      - name: Run tests
+        run: dotnet test --no-build --configuration Release --verbosity normal
+
+      - name: Apply EF Core migrations
+        run: dotnet
