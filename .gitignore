@@ -1,16 +1,35 @@
-# Visual Studio cache
+# Visual Studio
 .vs/
-*.user
 *.suo
+*.user
+*.userosscache
+*.sln.docstates
 
-# Build output
+# Build results
 bin/
 obj/
 
-# Logs & databases
-*.log
+# NuGet packages
+*.nupkg
+*.snupkg
+packages/
+
+# EF Core Migrations (optional if you want to ignore database)
 *.db
 *.sqlite
 
-# Environment
+# Logs
+*.log
+
+# Git-related (ignore accidental system files)
+.git/
+*.gitignore.txt
+
+# Dotnet tools or executables
+dotnet
+
+# Node / Frontend (if you add Angular later)
+node_modules/
+
+# Environment variables
 .env
