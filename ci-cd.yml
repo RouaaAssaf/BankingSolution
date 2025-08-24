@@ -11,32 +11,40 @@ jobs:
     runs-on: windows-latest
 
     steps:
+      # Step 1: Checkout the repo
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      # Step 2: Setup .NET
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '8.0.x'  # Adjust to your .NET version
+          dotnet-version: '8.0.x'  # adjust if needed
 
-      - name: Restore NuGet packages
-        run: dotnet restore
-
-      - name: Build solution
-        run: dotnet build --no-restore --configuration Release
-
-      - name: Run tests
-        run: dotnet test --no-build --configuration Release --verbosity normal
-
-      - name: Apply EF Core migrations
-        run: dotnet ef database update --project src/Banking.Infrastructure
-
+      # Step 3: Install EF Core CLI globally
       - name: Install EF Core CLI
         run: dotnet tool install --global dotnet-ef --version 8.0.0
 
+      # Step 4: Add global tools to PATH
       - name: Add dotnet tools to PATH
         run: echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
 
+      # Step 5: Restore NuGet packages
+      - name: Restore NuGet packages
+        run: dotnet restore
 
+      # Step 6: Build the solution
+      - name: Build solution
+        run: dotnet build --no-restore --configuration Release
+
+      # Step 7: Run unit tests
+      - name: Run tests
+        run: dotnet test --no-build --configuration Release --verbosity normal
+
+      # Step 8: Apply EF Core migrations
+      - name: Apply EF Core migrations
+        run: dotnet ef database update --project src/Banking.Infrastructure
+
+      # Step 9: Run the API
       - name: Run API
         run: dotnet run --project src/Banking.WebApi
