@@ -1,0 +1,16 @@
+# Visual Studio cache
+.vs/
+*.user
+*.suo
+
+# Build output
+bin/
+obj/
+
+# Logs & databases
+*.log
+*.db
+*.sqlite
+
+# Environment
+.env
