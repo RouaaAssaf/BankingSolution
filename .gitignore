@@ -1,0 +1,17 @@
+# Visual Studio files
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build output
+bin/
+obj/
+
+# Database files
+*.db
+*.sqlite
+
+# Dotnet tools folder (if exists)
+dotnet/
