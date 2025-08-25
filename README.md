@@ -57,6 +57,20 @@ GET	  /api/customers/{id}/summary	            Get customer summary with balance 
 //Example: Get Customer Summary
     GET /api/customers/aaa/summary
 
+//Frontend Access
+
+   Users can access the frontend via:
+   https://localhost:7265/index.html
+
+
+    Swagger is available for testing API endpoints.
+    The frontend is available at /index.html and provides a simple UI to:
+    Open accounts
+    Add transactions
+    View customer summary
+
+
+
 //Running Unit Tests
 
     All unit tests are in the tests/Banking.UnitTests folder.
@@ -68,4 +82,10 @@ GET	  /api/customers/{id}/summary	            Get customer summary with balance 
 
    The API uses SQLite for simplicity.
    Accounts and Transactions are handled through separate services.
-   Make sure to run dotnet ef database update before using the API to initialize the database.   
+   Make sure to run dotnet ef database update before using the API to initialize the database.
+
+   To inspect the database tables, you can use DB Browser for SQLite:
+    Open banking.db located in the project root.
+    Explore tables such as Customers, Accounts, and Transactions.
+
+
