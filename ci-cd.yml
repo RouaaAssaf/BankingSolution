@@ -29,6 +29,9 @@ jobs:
       - name: Add dotnet tools to PATH
         run: echo "${{ env.USERPROFILE }}\\.dotnet\\tools" >> $GITHUB_PATH
 
+      - name: Apply EF Core migrations
+        run: dotnet ef database update --project src/Banking.Infrastructure --startup-project src/Banking.Api
+
       
       - name: Restore NuGet packages
         run: dotnet restore
