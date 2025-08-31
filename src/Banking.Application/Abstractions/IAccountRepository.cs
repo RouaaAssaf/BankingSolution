@@ -8,10 +8,4 @@ public interface IAccountRepository
     Task<int> SaveChangesAsync(CancellationToken ct);
 }
 
-public interface ITransactionRepository
-{
-    Task<IEnumerable<Transaction>> GetByAccountIdAsync(Guid accountId, CancellationToken ct);
 
-    Task AddAsync(Transaction transaction, CancellationToken ct);
-    Task<int> SaveChangesAsync(CancellationToken ct);
-}

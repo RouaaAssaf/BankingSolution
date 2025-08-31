@@ -19,7 +19,7 @@ public class AddTransactionService
         var account = await _accounts.GetByIdAsync(accountId, ct)
             ?? throw new InvalidOperationException("Account not found.");
 
-        var signed = request.Type == TransactionType.Debit
+        var signed = request.TransactionType == TransactionType.Debit
             ? -Math.Abs(request.Amount)
             : Math.Abs(request.Amount);
 
@@ -27,7 +27,7 @@ public class AddTransactionService
         {
             AccountId = accountId,
             Amount = signed,
-            Type = request.Type,
+            Type = request.TransactionType,
             Description = request.Description
         };
 

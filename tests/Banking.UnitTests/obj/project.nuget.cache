@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "Q0vkAY6ABrE=",
+  "dgSpecHash": "iqQlX+p9Ts8=",
   "success": true,
   "projectFilePath": "C:\\Users\\USER\\source\\repos\\BankingSolution\\tests\\Banking.UnitTests\\Banking.UnitTests.csproj",
   "expectedPackageFiles": [
@@ -8,6 +8,8 @@
     "C:\\Users\\USER\\.nuget\\packages\\coverlet.collector\\6.0.0\\coverlet.collector.6.0.0.nupkg.sha512",
     "C:\\Users\\USER\\.nuget\\packages\\fluentassertions\\8.6.0\\fluentassertions.8.6.0.nupkg.sha512",
     "C:\\Users\\USER\\.nuget\\packages\\fluentvalidation\\12.0.0\\fluentvalidation.12.0.0.nupkg.sha512",
+    "C:\\Users\\USER\\.nuget\\packages\\mediatr\\13.0.0\\mediatr.13.0.0.nupkg.sha512",
+    "C:\\Users\\USER\\.nuget\\packages\\mediatr.contracts\\2.0.1\\mediatr.contracts.2.0.1.nupkg.sha512",
     "C:\\Users\\USER\\.nuget\\packages\\microsoft.codecoverage\\17.8.0\\microsoft.codecoverage.17.8.0.nupkg.sha512",
     "C:\\Users\\USER\\.nuget\\packages\\microsoft.data.sqlite.core\\9.0.8\\microsoft.data.sqlite.core.9.0.8.nupkg.sha512",
     "C:\\Users\\USER\\.nuget\\packages\\microsoft.entityframeworkcore\\9.0.8\\microsoft.entityframeworkcore.9.0.8.nupkg.sha512",
@@ -28,6 +30,10 @@
     "C:\\Users\\USER\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\9.0.8\\microsoft.extensions.logging.abstractions.9.0.8.nupkg.sha512",
     "C:\\Users\\USER\\.nuget\\packages\\microsoft.extensions.options\\9.0.8\\microsoft.extensions.options.9.0.8.nupkg.sha512",
     "C:\\Users\\USER\\.nuget\\packages\\microsoft.extensions.primitives\\9.0.8\\microsoft.extensions.primitives.9.0.8.nupkg.sha512",
+    "C:\\Users\\USER\\.nuget\\packages\\microsoft.identitymodel.abstractions\\8.0.1\\microsoft.identitymodel.abstractions.8.0.1.nupkg.sha512",
+    "C:\\Users\\USER\\.nuget\\packages\\microsoft.identitymodel.jsonwebtokens\\8.0.1\\microsoft.identitymodel.jsonwebtokens.8.0.1.nupkg.sha512",
+    "C:\\Users\\USER\\.nuget\\packages\\microsoft.identitymodel.logging\\8.0.1\\microsoft.identitymodel.logging.8.0.1.nupkg.sha512",
+    "C:\\Users\\USER\\.nuget\\packages\\microsoft.identitymodel.tokens\\8.0.1\\microsoft.identitymodel.tokens.8.0.1.nupkg.sha512",
     "C:\\Users\\USER\\.nuget\\packages\\microsoft.net.test.sdk\\17.8.0\\microsoft.net.test.sdk.17.8.0.nupkg.sha512",
     "C:\\Users\\USER\\.nuget\\packages\\microsoft.testplatform.objectmodel\\17.8.0\\microsoft.testplatform.objectmodel.17.8.0.nupkg.sha512",
     "C:\\Users\\USER\\.nuget\\packages\\microsoft.testplatform.testhost\\17.8.0\\microsoft.testplatform.testhost.17.8.0.nupkg.sha512",

@@ -2,4 +2,9 @@
 
 namespace Banking.Application.Accounts;
 
-public record AddTransactionRequest(decimal Amount, TransactionType Type, string Description);
+public class AddTransactionRequest
+{
+    public decimal Amount { get; set; }
+    public TransactionType TransactionType { get; set; } = default!;
+    public string Description { get; set; } = default!;
+}

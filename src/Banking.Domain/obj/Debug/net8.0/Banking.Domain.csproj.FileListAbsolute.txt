@@ -5,8 +5,8 @@ C:\Users\USER\source\repos\BankingSolution\src\Banking.Domain\obj\Debug\net8.0\B
 C:\Users\USER\source\repos\BankingSolution\src\Banking.Domain\obj\Debug\net8.0\Banking.Domain.AssemblyInfoInputs.cache
 C:\Users\USER\source\repos\BankingSolution\src\Banking.Domain\obj\Debug\net8.0\Banking.Domain.AssemblyInfo.cs
 C:\Users\USER\source\repos\BankingSolution\src\Banking.Domain\obj\Debug\net8.0\Banking.Domain.csproj.CoreCompileInputs.cache
+C:\Users\USER\source\repos\BankingSolution\src\Banking.Domain\obj\Debug\net8.0\Banking.Domain.sourcelink.json
 C:\Users\USER\source\repos\BankingSolution\src\Banking.Domain\obj\Debug\net8.0\Banking.Domain.dll
 C:\Users\USER\source\repos\BankingSolution\src\Banking.Domain\obj\Debug\net8.0\refint\Banking.Domain.dll
 C:\Users\USER\source\repos\BankingSolution\src\Banking.Domain\obj\Debug\net8.0\Banking.Domain.pdb
 C:\Users\USER\source\repos\BankingSolution\src\Banking.Domain\obj\Debug\net8.0\ref\Banking.Domain.dll
-C:\Users\USER\source\repos\BankingSolution\src\Banking.Domain\obj\Debug\net8.0\Banking.Domain.sourcelink.json

@@ -11,7 +11,7 @@ public class GetCustomerSummaryService
 
     public GetCustomerSummaryService(ICustomerRepository customers, ILogger<GetCustomerSummaryService> logger)
     {
-        _customers = customers; 
+        _customers = customers;
         _logger = logger;
     }
 

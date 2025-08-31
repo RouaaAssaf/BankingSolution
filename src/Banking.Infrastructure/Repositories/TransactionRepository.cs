@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Banking.Domain.Entities;
+using Banking.Application.Abstractions;
 
 
 public class TransactionRepository : ITransactionRepository

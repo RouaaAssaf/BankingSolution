@@ -11,10 +11,10 @@ C:\Users\USER\source\repos\BankingSolution\src\Banking.Infrastructure\obj\Debug\
 C:\Users\USER\source\repos\BankingSolution\src\Banking.Infrastructure\obj\Debug\net8.0\Banking.Infrastructure.AssemblyInfoInputs.cache
 C:\Users\USER\source\repos\BankingSolution\src\Banking.Infrastructure\obj\Debug\net8.0\Banking.Infrastructure.AssemblyInfo.cs
 C:\Users\USER\source\repos\BankingSolution\src\Banking.Infrastructure\obj\Debug\net8.0\Banking.Infrastructure.csproj.CoreCompileInputs.cache
+C:\Users\USER\source\repos\BankingSolution\src\Banking.Infrastructure\obj\Debug\net8.0\Banking.Infrastructure.sourcelink.json
 C:\Users\USER\source\repos\BankingSolution\src\Banking.Infrastructure\obj\Debug\net8.0\Banking..269F7D3E.Up2Date
 C:\Users\USER\source\repos\BankingSolution\src\Banking.Infrastructure\obj\Debug\net8.0\Banking.Infrastructure.dll
 C:\Users\USER\source\repos\BankingSolution\src\Banking.Infrastructure\obj\Debug\net8.0\refint\Banking.Infrastructure.dll
 C:\Users\USER\source\repos\BankingSolution\src\Banking.Infrastructure\obj\Debug\net8.0\Banking.Infrastructure.pdb
 C:\Users\USER\source\repos\BankingSolution\src\Banking.Infrastructure\obj\Debug\net8.0\Banking.Infrastructure.genruntimeconfig.cache
 C:\Users\USER\source\repos\BankingSolution\src\Banking.Infrastructure\obj\Debug\net8.0\ref\Banking.Infrastructure.dll
-C:\Users\USER\source\repos\BankingSolution\src\Banking.Infrastructure\obj\Debug\net8.0\Banking.Infrastructure.sourcelink.json
