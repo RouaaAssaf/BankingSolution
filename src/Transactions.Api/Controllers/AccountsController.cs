@@ -1,4 +1,6 @@
 ﻿using Banking.Application.Accounts;
+using Banking.Domain.Entities;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 
@@ -9,27 +11,52 @@ namespace Transactions.Api.Controllers;
 [Route("api/accounts")]
 public class AccountsController : ControllerBase
 {
-    private readonly OpenAccountService _openAccountService;
-    private readonly AddTransactionService _addTransactionService;
+    private readonly IMediator _mediator;
 
-    public AccountsController(OpenAccountService openAccountService, AddTransactionService addTransactionService)
+    public AccountsController(IMediator mediator)
     {
-        _openAccountService = openAccountService;
-        _addTransactionService = addTransactionService;
+        _mediator = mediator;
     }
 
-    [HttpPost("open")]
-    public async Task<IActionResult> OpenAccount([FromBody] OpenAccountRequest request, CancellationToken ct)
+    [HttpPost]
+    public async Task<IActionResult> OpenAccount(
+    [FromBody] OpenAccountRequest request,
+    CancellationToken ct)
     {
-        var accountId = await _openAccountService.HandleAsync(request, ct);
-        return CreatedAtAction(nameof(OpenAccount), new { accountId });
+        // Map DTO → Command
+        var command = new OpenAccountCommand(
+            request.CustomerId,
+            request.InitialCredit
+        );
+
+        // Send command to MediatR
+        var accountId = await _mediator.Send(command, ct);
+
+        return Created("", new { AccountId = accountId });
     }
 
-    // Add transaction to existing account
+
     [HttpPost("{accountId:guid}/transaction")]
-    public async Task<IActionResult> AddTransaction(Guid accountId, [FromBody] AddTransactionRequest request, CancellationToken ct)
+    public async Task<IActionResult> AddTransaction(
+    Guid accountId,
+    [FromBody] AddTransactionRequest request,
+    CancellationToken ct)
     {
-        var txId = await _addTransactionService.HandleAsync(accountId, request, ct);
-        return Created("", new { txId });
+        if (!Enum.IsDefined(typeof(TransactionType), request.TransactionType))
+            return BadRequest("Invalid transaction type. Allowed values are 0 (Credit) or 1 (Debit).");
+
+
+        // Map DTO → Command
+        var command = new AddTransactionCommand(
+            accountId,
+            request.Amount,
+            request.TransactionType,
+            request.Description
+        );
+
+        // Send command to MediatR
+        var txId = await _mediator.Send(command, ct);
+
+        return Created("", new { TransactionId = txId });
     }
-} 
+}

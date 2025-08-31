@@ -14,10 +14,9 @@ public class AccountRepository : IAccountRepository
     public async Task<Account?> GetByIdAsync(Guid id, CancellationToken ct)
         => await _context.Accounts.FindAsync(new object?[] { id }, ct);
 
-    public Task AddTransactionAsync(Transaction transaction, CancellationToken ct)
+    public async Task AddTransactionAsync(Transaction transaction, CancellationToken ct)
     {
-        _context.Transactions.Add(transaction);
-        return Task.CompletedTask;
+        await _context.Transactions.AddAsync(transaction, ct);
     }
 
     public async Task<int> SaveChangesAsync(CancellationToken ct)
