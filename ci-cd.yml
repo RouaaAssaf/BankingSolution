@@ -44,9 +44,5 @@ jobs:
       - name: Run tests
         run: dotnet test --no-build --configuration Release --verbosity normal
 
-      - name: Restore dotnet tools
-        run: dotnet tool restore
-
       
-      - name: Apply EF Core migrations
-        run: dotnet tool run dotnet-ef database update --project src/Banking.Infrastructure
+     
