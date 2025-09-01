@@ -11,35 +11,31 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    #  Checkout code
-    - name: Checkout repository
-      uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    #  Setup .NET SDK
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: '9.0.x' # Match your project runtime
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x   # or your target version
 
-    #  Restore project dependencies
-    - name: Restore dependencies
-      run: dotnet restore
+      - name: Restore dependencies
+        run: dotnet restore
 
-    #  Install dotnet-ef globally
-    - name: Install EF Core CLI globally
-      run: dotnet tool install --global dotnet-ef --version 9.0.8 || dotnet tool update --global dotnet-ef
+      #  Restore dotnet-ef and any other local tools
+      - name: Restore .NET tools
+        run: dotnet tool restore
 
-    #  Add global tools folder to PATH
-    - name: Add dotnet global tools to PATH
-      shell: powershell
-      run: |
-        $env:PATH += ";$env:USERPROFILE\.dotnet\tools"
-        echo "PATH updated: $env:PATH"
+      - name: Build
+        run: dotnet build --no-restore
 
-    #  Build the project
-    - name: Build project
-      run: dotnet build --no-restore
+      - name: Update database
+        run: dotnet ef database update --project src/Banking.Infrastructure --no-build
 
-    # Update database using EF Core
-    - name: Update database
-      run: dotnet ef database update --project src/Banking.Infrastructure
+      - name: Verify database
+        run: |
+          if exist src\Banking.Infrastructure\banking.db (
+            echo " Database file created."
+          ) else (
+            echo " Database file missing!"
+            exit 1
+          )
