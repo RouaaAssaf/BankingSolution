@@ -1,4 +1,4 @@
-﻿using Banking.Application.Accounts;
+﻿using Banking.Application.Accounts.Commands;
 using Banking.Application.Abstractions;
 using Banking.Domain.Entities;
 using Moq;
@@ -7,19 +7,19 @@ using FluentAssertions;
 
 namespace Banking.UnitTests.Accounts;
 
-public class OpenAccountServiceTests
+public class OpenAccountCommandHandlerTests
 {
     private readonly Mock<ICustomerRepository> _customerRepo = new();
     private readonly Mock<IAccountRepository> _accountRepo = new();
-    private readonly OpenAccountService _sut; // System Under Test
+    private readonly OpenAccountCommandHandler _sut;
 
-    public OpenAccountServiceTests()
+    public OpenAccountCommandHandlerTests()
     {
-        _sut = new OpenAccountService(_customerRepo.Object, _accountRepo.Object);
+        _sut = new OpenAccountCommandHandler(_customerRepo.Object, _accountRepo.Object);
     }
 
     [Fact]
-    public async Task HandleAsync_Should_CreateAccount_WhenCustomerExists()
+    public async Task Handle_Should_CreateAccount_WhenCustomerExists()
     {
         // Arrange
         var customerId = Guid.NewGuid();
@@ -31,14 +31,10 @@ public class OpenAccountServiceTests
         _accountRepo.Setup(r => r.AddAsync(It.IsAny<Account>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Account acc, CancellationToken _) => acc);
 
-        var request = new OpenAccountRequest()
-        {
-            CustomerId = customerId,
-            InitialCredit = 0
-        };
+        var command = new OpenAccountCommand(customerId, 0);
 
         // Act
-        var accountId = await _sut.HandleAsync(request, CancellationToken.None);
+        var accountId = await _sut.Handle(command, CancellationToken.None);
 
         // Assert
         accountId.Should().NotBeEmpty();
@@ -46,22 +42,19 @@ public class OpenAccountServiceTests
     }
 
     [Fact]
-    public async Task HandleAsync_ShouldThrow_WhenCustomerDoesNotExist()
+    public async Task Handle_ShouldThrow_WhenCustomerDoesNotExist()
     {
         // Arrange
-        var request = new OpenAccountRequest
-        {
-            CustomerId = Guid.NewGuid(),
-            InitialCredit = 0
-        };
+        var command = new OpenAccountCommand(Guid.NewGuid(), 0);
 
-        _customerRepo.Setup(r => r.GetByIdAsync(request.CustomerId, It.IsAny<CancellationToken>()))
+        _customerRepo.Setup(r => r.GetByIdAsync(command.CustomerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Customer?)null);
 
         // Act
-        Func<Task> act = () => _sut.HandleAsync(request, CancellationToken.None);
+        Func<Task> act = () => _sut.Handle(command, CancellationToken.None);
 
+        // Assert
         await act.Should().ThrowAsync<InvalidOperationException>()
-    .Where(ex => ex.Message.Contains("Customer not found"));
+            .Where(ex => ex.Message.Contains("Customer not found"));
     }
 }
