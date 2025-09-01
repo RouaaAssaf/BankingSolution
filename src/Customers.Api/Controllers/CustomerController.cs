@@ -1,4 +1,6 @@
 using Banking.Application.Customers;
+using Banking.Application.Customers.Queries;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Banking.WebApi.Controllers;
@@ -7,17 +9,19 @@ namespace Banking.WebApi.Controllers;
 [Route("api/customers")]
 public class CustomersController : ControllerBase
 {
-    private readonly GetCustomerSummaryService _service;
+    private readonly IMediator _mediator;
 
-    public CustomersController(GetCustomerSummaryService service)
+    public CustomersController(IMediator mediator)
     {
-        _service = service;
+        _mediator = mediator;
     }
 
     [HttpGet("{id:guid}/summary")]
     public async Task<ActionResult<CustomerSummaryResponse>> GetSummary(Guid id, CancellationToken ct)
     {
-        var summary = await _service.HandleAsync(id, ct);
+        var query = new GetCustomerSummaryQuery(id);
+        var summary = await _mediator.Send(query, ct);
+
         return Ok(summary);
     }
 }
