@@ -17,7 +17,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '8.0.x'  # Adjust to your .NET version
+          dotnet-version: '9.0.x'
 
       - name: Restore NuGet packages
         run: dotnet restore
@@ -25,11 +25,12 @@ jobs:
       - name: Build solution
         run: dotnet build --no-restore --configuration Release
 
-      - name: Run tests
-        run: dotnet test --no-build --configuration Release --verbosity normal
+      # This makes EF Core available without global PATH issues
+      - name: Restore dotnet tools
+        run: dotnet tool restore
 
       - name: Apply EF Core migrations
-        run: dotnet ef database update --project src/Banking.Infrastructure
+        run: dotnet tool run dotnet-ef database update --project src/Banking.Infrastructure --startup-project src/Transactions.Api
 
-      - name: Run API
-        run: dotnet run --project src/Banking.WebApi
+      - name: Run tests
+        run: dotnet test --no-build --configuration Release --verbosity normal
