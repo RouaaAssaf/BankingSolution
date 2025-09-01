@@ -24,7 +24,7 @@ builder.Services.AddSwaggerGen();
 
 // Logging
 builder.Services.AddLogging();
-
+builder.Services.AddControllers();
 // DbContext
 builder.Services.AddDbContext<BankingDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -33,11 +33,6 @@ builder.Services.AddDbContext<BankingDbContext>(options =>
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
 builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
-
-// Services
-builder.Services.AddScoped<OpenAccountService>();
-builder.Services.AddScoped<AddTransactionService>();
-builder.Services.AddScoped<GetCustomerSummaryService>();
 
 builder.Services.AddMediatR(cfg =>
     cfg.RegisterServicesFromAssembly(Assembly.Load("Banking.Application"))

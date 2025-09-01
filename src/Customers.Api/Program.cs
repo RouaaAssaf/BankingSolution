@@ -25,7 +25,7 @@ builder.Services.AddDbContext<BankingDbContext>(options =>
 // Repositories & Services
 builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
-builder.Services.AddScoped<GetCustomerSummaryService>();
+
 
 builder.Services.AddMediatR(cfg =>
     cfg.RegisterServicesFromAssembly(Assembly.Load("Banking.Application"))
