@@ -1,4 +1,5 @@
-﻿namespace Banking.Application.Accounts;
+﻿
+namespace Banking.Application.Accounts;
 public class OpenAccountRequest
 {
     public Guid CustomerId { get; set; }

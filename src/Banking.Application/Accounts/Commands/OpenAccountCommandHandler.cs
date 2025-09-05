@@ -1,20 +1,31 @@
-﻿using Banking.Application.Abstractions;
+﻿namespace Banking.Application.Accounts.Commands;
+using Banking.Application.Abstractions;
 using Banking.Domain.Entities;
 using MediatR;
 
 public class OpenAccountCommandHandler : IRequestHandler<OpenAccountCommand, Guid>
 {
+    private readonly ICustomerRepository _customers;
     private readonly IAccountRepository _accounts;
     private readonly ITransactionRepository _transactions;
 
-    public OpenAccountCommandHandler(IAccountRepository accounts, ITransactionRepository transactions)
+    public OpenAccountCommandHandler(
+        ICustomerRepository customers,
+        IAccountRepository accounts,
+        ITransactionRepository transactions)
     {
+        _customers = customers;
         _accounts = accounts;
         _transactions = transactions;
     }
 
     public async Task<Guid> Handle(OpenAccountCommand request, CancellationToken ct)
     {
+        // 0. Verify that the customer exists
+        var customer = await _customers.GetByIdAsync(request.CustomerId, ct);
+        if (customer is null)
+            throw new InvalidOperationException("Customer not found");
+
         // 1. Create account
         var account = new Account
         {

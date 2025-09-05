@@ -1,7 +1,8 @@
-﻿using Banking.Application.Accounts;
+﻿using Banking.Application.Accounts.Commands;
 using Banking.Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Banking.Application.Accounts;
 
 
 
@@ -23,16 +24,21 @@ public class AccountsController : ControllerBase
     [FromBody] OpenAccountRequest request,
     CancellationToken ct)
     {
-        // Map DTO → Command
-        var command = new OpenAccountCommand(
-            request.CustomerId,
-            request.InitialCredit
-        );
+         try
+        {
+            var command = new OpenAccountCommand(
+                request.CustomerId,
+                request.InitialCredit
+            );
 
-        // Send command to MediatR
-        var accountId = await _mediator.Send(command, ct);
+            var accountId = await _mediator.Send(command, ct);
 
-        return Created("", new { AccountId = accountId });
+            return Created("", new { AccountId = accountId });
+        }
+        catch (InvalidOperationException ex) when (ex.Message == "Customer not found")
+        {
+            return NotFound(new { Message = ex.Message });
+        }
     }
 
 
