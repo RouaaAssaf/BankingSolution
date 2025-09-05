@@ -20,8 +20,15 @@ public class CustomersController : ControllerBase
     public async Task<ActionResult<CustomerSummaryResponse>> GetSummary(Guid id, CancellationToken ct)
     {
         var query = new GetCustomerSummaryQuery(id);
-        var summary = await _mediator.Send(query, ct);
 
-        return Ok(summary);
+        try
+        {
+            var summary = await _mediator.Send(query, ct);
+            return Ok(summary);
+        }
+        catch (KeyNotFoundException ex) // thrown if customer not found
+        {
+            return NotFound(new { message = ex.Message });
+        }
     }
 }

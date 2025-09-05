@@ -2,49 +2,44 @@
 using Banking.Domain.Entities;
 using MediatR;
 
-namespace Banking.Application.Accounts.Commands;
-
 public class OpenAccountCommandHandler : IRequestHandler<OpenAccountCommand, Guid>
 {
-    private readonly ICustomerRepository _customers;
     private readonly IAccountRepository _accounts;
+    private readonly ITransactionRepository _transactions;
 
-    public OpenAccountCommandHandler(ICustomerRepository customers, IAccountRepository accounts)
+    public OpenAccountCommandHandler(IAccountRepository accounts, ITransactionRepository transactions)
     {
-        _customers = customers;
         _accounts = accounts;
+        _transactions = transactions;
     }
 
-    public async Task<Guid> Handle(OpenAccountCommand request, CancellationToken cancellationToken)
+    public async Task<Guid> Handle(OpenAccountCommand request, CancellationToken ct)
     {
-        // 1. Validate customer exists
-        var customer = await _customers.GetByIdAsync(request.CustomerId, cancellationToken);
-        if (customer is null)
-            throw new InvalidOperationException("Customer not found");
-
-        // 2. Create new account
+        // 1. Create account
         var account = new Account
         {
             Id = Guid.NewGuid(),
-            CustomerId = request.CustomerId
+            CustomerId = request.CustomerId,
+            OpenedAt = DateTime.UtcNow
         };
 
-        // 3. Add initial transaction if deposit > 0
+        await _accounts.AddAsync(account, ct);
+
+        // 2. If initial credit > 0, add a transaction
         if (request.InitialDeposit > 0)
         {
-            account.Transactions.Add(new Transaction
+            var tx = new Transaction
             {
                 Id = Guid.NewGuid(),
                 AccountId = account.Id,
                 Amount = request.InitialDeposit,
-                Description = "Initial Deposit",
+                Type = TransactionType.Credit,
+                Description = "Initial Credit",
                 CreatedAt = DateTime.UtcNow
-            });
-        }
+            };
 
-        // 4. Save account
-        await _accounts.AddAsync(account, cancellationToken);
-        await _accounts.SaveChangesAsync(cancellationToken);
+            await _transactions.AddAsync(tx, ct);
+        }
 
         return account.Id;
     }

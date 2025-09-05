@@ -14,8 +14,10 @@ public class GetCustomerSummaryQueryHandler : IRequestHandler<GetCustomerSummary
 
     public async Task<CustomerSummaryResponse> Handle(GetCustomerSummaryQuery request, CancellationToken ct)
     {
-        var customer = await _customers.GetByIdAsync(request.CustomerId, ct)
-                      ?? throw new InvalidOperationException("Customer not found.");
+        var customer = await _customers.GetByIdAsync(request.CustomerId, ct);
+        if (customer == null)
+            throw new KeyNotFoundException($"Customer with ID {request.CustomerId} not found.");
+
 
         var allTx = customer.Accounts
                             .SelectMany(a => a.Transactions)
@@ -33,4 +35,4 @@ public class GetCustomerSummaryQueryHandler : IRequestHandler<GetCustomerSummary
             allTx
         );
     }
-}
+} 
