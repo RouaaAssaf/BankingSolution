@@ -28,7 +28,7 @@ public class AccountsController : ControllerBase
         {
             var command = new OpenAccountCommand(
                 request.CustomerId,
-                request.InitialCredit
+                request.InitialDeposit
             );
 
             var accountId = await _mediator.Send(command, ct);
@@ -52,17 +52,31 @@ public class AccountsController : ControllerBase
             return BadRequest("Invalid transaction type. Allowed values are 0 (Credit) or 1 (Debit).");
 
 
-        // Map DTO → Command
-        var command = new AddTransactionCommand(
-            accountId,
-            request.Amount,
-            request.TransactionType,
-            request.Description
-        );
+        try
+        {
+            // Map DTO → Command
+            var command = new AddTransactionCommand(
+                accountId,
+                request.Amount,
+                request.TransactionType,
+                request.Description
+            );
 
-        // Send command to MediatR
-        var txId = await _mediator.Send(command, ct);
+            var txId = await _mediator.Send(command, ct);
 
-        return Created("", new { TransactionId = txId });
+            return Created("", new
+            {
+                Message = "Transaction added successfully",
+                TransactionId = txId
+            });
+        }
+        catch (KeyNotFoundException ex) // account not found
+        {
+            return NotFound(new { Message = ex.Message });
+        }
+        catch (ArgumentException ex) // validation error (e.g. invalid amount)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
     }
-}
+ }

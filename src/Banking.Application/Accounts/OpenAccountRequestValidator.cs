@@ -9,7 +9,7 @@ public class OpenAccountRequestValidator : AbstractValidator<OpenAccountRequest>
         RuleFor(x => x.CustomerId)
             .NotEmpty().WithMessage("CustomerId is required.");
 
-        RuleFor(x => x.InitialCredit)
+        RuleFor(x => x.InitialDeposit)
             .GreaterThanOrEqualTo(0).WithMessage("Initial credit cannot be negative.");
     }
 }

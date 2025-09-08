@@ -1,5 +1,6 @@
 ﻿using Banking.Application.Abstractions;
 using Banking.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 using MongoDB.Driver;
 
 namespace Banking.Infrastructure.Repositories.Mongo;
@@ -30,11 +31,27 @@ public class MongoAccountRepository : IAccountRepository
         return account;
     }
 
-    // Add a transaction (does NOT update account balance)
     public async Task AddTransactionAsync(Transaction transaction, CancellationToken ct)
     {
         await _transactions.InsertOneAsync(transaction, cancellationToken: ct);
+
+        var amountChange = transaction.Type == TransactionType.Credit
+            ? transaction.Amount
+            : -transaction.Amount;
+
+        var update = Builders<Account>.Update
+            .Inc("Balance", amountChange) // increment persisted balance
+            .Push(a => a.Transactions, transaction); // also push the transaction
+
+        await _accounts.UpdateOneAsync(
+            Builders<Account>.Filter.Eq(a => a.Id, transaction.AccountId),
+            update,
+            cancellationToken: ct
+        );
     }
+
+
+
 
     // Optional: get all accounts for a customer
     public async Task<List<Account>> GetByCustomerIdAsync(Guid customerId, CancellationToken ct)

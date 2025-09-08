@@ -1,5 +1,9 @@
 ﻿namespace Banking.Domain.Entities;
-public enum TransactionType { Credit, Debit }
+public enum TransactionType
+{
+    Credit = 0,
+    Debit = 1
+}
 
 public class Transaction
 {

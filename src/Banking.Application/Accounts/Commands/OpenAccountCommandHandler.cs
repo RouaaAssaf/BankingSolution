@@ -21,7 +21,7 @@ public class OpenAccountCommandHandler : IRequestHandler<OpenAccountCommand, Gui
 
     public async Task<Guid> Handle(OpenAccountCommand request, CancellationToken ct)
     {
-        // 0. Verify that the customer exists
+        //  Verify that the customer exists
         var customer = await _customers.GetByIdAsync(request.CustomerId, ct);
         if (customer is null)
             throw new InvalidOperationException("Customer not found");
