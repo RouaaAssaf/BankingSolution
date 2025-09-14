@@ -10,6 +10,32 @@ jobs:
   build:
     runs-on: windows-latest
 
+    services:
+      mongo:
+        image: mongo:6.0
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongo --eval 'db.runCommand({ ping: 1 })'" 
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      rabbitmq:
+        image: rabbitmq:3-management
+        ports:
+          - 5672:5672
+          - 15672:15672
+        options: >-
+          --health-cmd "rabbitmqctl status"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      MONGODB_CONNECTION: "mongodb://localhost:27017"
+      RABBITMQ_CONNECTION: "amqp://guest:guest@localhost:5672/"
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -24,13 +50,6 @@ jobs:
 
       - name: Build solution
         run: dotnet build --no-restore --configuration Release
-
-      # This makes EF Core available without global PATH issues
-      - name: Restore dotnet tools
-        run: dotnet tool restore
-
-      - name: Apply EF Core migrations
-        run: dotnet tool run dotnet-ef database update --project src/Banking.Infrastructure --startup-project src/Transactions.Api
 
       - name: Run tests
         run: dotnet test --no-build --configuration Release --verbosity normal
