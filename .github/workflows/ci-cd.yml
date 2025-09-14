@@ -8,7 +8,7 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest  # Linux runner is required for services
+    runs-on: ubuntu-latest
 
     services:
       mongo:
@@ -16,7 +16,6 @@ jobs:
         ports:
           - 27017:27017
         options: --health-cmd="mongosh --eval 'db.adminCommand(\"ping\")'" --health-interval=10s --health-timeout=5s --health-retries=5
-
 
       rabbitmq:
         image: rabbitmq:3-management
@@ -38,6 +37,28 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
+      - name: Cache NuGet packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Wait for MongoDB to be ready
+        run: |
+          until mongosh --host localhost --eval "db.adminCommand('ping')" > /dev/null 2>&1; do
+            echo "Waiting for MongoDB..."
+            sleep 2
+          done
+
+      - name: Wait for RabbitMQ to be ready
+        run: |
+          until rabbitmqctl status > /dev/null 2>&1; do
+            echo "Waiting for RabbitMQ..."
+            sleep 2
+          done
+
       - name: Restore NuGet packages
         run: dotnet restore
 
@@ -45,4 +66,10 @@ jobs:
         run: dotnet build --no-restore --configuration Release
 
       - name: Run tests
-        run: dotnet test --no-build --configuration Release --verbosity normal
+        run: dotnet test --no-build --configuration Release --verbosity normal --logger "trx;LogFileName=TestResults.trx"
+
+      - name: Publish Test Results
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results
+          path: '**/TestResults/*.trx'
