@@ -53,92 +53,75 @@ Set `appsettings.json`:
     "Exchange": "domain.events"
   }
 }
-Setup Instructions
-Clone the repository
-bash
-Copy code
-git clone https://github.com/RouaaAssaf/BankingSolution.git
-cd BankingSolution
-Restore NuGet packages
-bash
-Copy code
-dotnet restore
-Start RabbitMQ & MongoDB (locally)
-bash
-Copy code
-# RabbitMQ
-docker run -d --hostname my-rabbit --name rabbitmq -p 5672:5672 -p 15672:15672 rabbitmq:3-management
 
-# MongoDB
-docker run -d --name mongodb -p 27017:27017 -v mongo-data:/data/db mongo:6.0
-Run the services
-bash
-Copy code
-# Transactions API
-cd src/Transactions.Api
-dotnet run
+## Setup Instructions
+   1. Clone the repository:
+       git clone https://github.com/RouaaAssaf/BankingSolution.git  
+       cd BankingSolution
 
-# Customers API
-cd src/Customers.Api
-dotnet run
-APIs will be available at:
+   2.Restore NuGet packages: 
+      dotnet restore
 
-Transactions: http://localhost:5000
+   3.Start RabbitMQ & MongoDB (locally)
 
-Customers: http://localhost:5001
+   4.Run the services:
+    cd src/Transactions.Api 
+    dotnet run
 
-API Endpoints
-Customers.Api
-Method	Endpoint	Description
-POST	/api/customers	Create a new customer
-GET	/api/customers/{id}/summary	Get customer summary (accounts + balances)
+    cd src/Customers.Api 
+    dotnet run
 
-Transactions.Api
-Method	Endpoint	Description
-POST	/api/accounts	Open a new account
-POST	/api/accounts/{accountId}/transactions	Add a transaction (credit/debit)
 
-Unit Tests
+ APIs will be available at: 
+   Transactions: http://localhost:5000 
+   Customers: http://localhost:5001
+
+ API Endpoints
+
+1.Customers.Api 
+      Method      Endpoint                       Description 
+       POST    /api/Customers               Create a new customer
+       GET    /api/customers/{id}/summary   Get customer summary (accounts + balances)
+
+
+2.Transactions.Api 
+     Method       Endpoint                                Description 
+     POST       /api/accounts                          Open a new account for a customer 
+     POST      /api/accounts/{accountId}/transactions  Add a transaction (credit/debit)
+
+
 All unit tests are in tests/Banking.UnitTests:
+    dotnet test
 
-bash
-Copy code
-dotnet test
+
 Example Requests
 1. Create Customer
-http
-Copy code
-POST /api/customers
-Content-Type: application/json
-
-{
-  "firstName": "John",
-  "lastName": "Doe",
-  "email": "john.doe@email.com"
-}
-➡️ Publishes CustomerCreatedEvent → Transactions.Api opens account automatically.
+    POST /api/customers 
+    Content-Type: application/json
+     { 
+        "firstName": "John",
+         "lastName": "Doe", 
+         "email": "john.doe@email.com" 
+     } 
+     
+    ➡️ Publishes CustomerCreatedEvent → Transactions.Api automatically opens an account for the customer.
 
 2. Add Transaction
-http
-Copy code
-POST /api/accounts/{accountId}/transactions
-Content-Type: application/json
-
-{
-  "amount": 250,
-  "type": "Credit",
-  "description": "Salary deposit"
-}
-➡️ Publishes TransactionCreatedEvent + AccountBalanceUpdatedEvent
-Customers.Api consumes the balance update to refresh summaries.
+     POST
+     /api/accounts/{accountId}/transactions
+     Content-Type: application/json 
+      { 
+         "amount": 250,
+         "type": "Credit",
+         "description": "Salary deposit" 
+      } 
+      
+    ➡️ Publishes TransactionCreatedEvent + AccountBalanceUpdatedEvent. Customers.Api consumes the balance update and refreshes the customer’s summary.
 
 3. Get Customer Summary
-http
-Copy code
-GET /api/customers/{customerId}/summary
-Event Flow Diagram
-mermaid
-Copy code
+    GET /api/customers/{customerId}/summary
+
+
 sequenceDiagram
     participant C as Customers.Api
     participant T as Transactions.Api
@@ -151,7 +134,8 @@ sequenceDiagram
     T->>MQ: TransactionCreatedEvent
     T->>MQ: AccountBalanceUpdatedEvent
     MQ->>C: AccountBalanceUpdatedEvent
-Notes
+
+##Notes
 ✅ MongoDB is used for persistence (SQLite removed)
 
 ✅ Services communicate via RabbitMQ events (no API calls)
