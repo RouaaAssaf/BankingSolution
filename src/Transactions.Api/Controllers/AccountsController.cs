@@ -1,10 +1,7 @@
-﻿using Banking.Application.Accounts.Commands;
+﻿using Banking.Application.Accounts;
 using Banking.Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Banking.Application.Accounts;
-
-
 
 namespace Transactions.Api.Controllers;
 
@@ -19,38 +16,15 @@ public class AccountsController : ControllerBase
         _mediator = mediator;
     }
 
-    [HttpPost]
-    public async Task<IActionResult> OpenAccount(
-    [FromBody] OpenAccountRequest request,
-    CancellationToken ct)
-    {
-         try
-        {
-            var command = new OpenAccountCommand(
-                request.CustomerId,
-                request.InitialDeposit
-            );
-
-            var accountId = await _mediator.Send(command, ct);
-
-            return Created("", new { AccountId = accountId });
-        }
-        catch (InvalidOperationException ex) when (ex.Message == "Customer not found")
-        {
-            return NotFound(new { Message = ex.Message });
-        }
-    }
-
-
+    // Only transaction endpoint remains
     [HttpPost("{accountId:guid}/transaction")]
     public async Task<IActionResult> AddTransaction(
-    Guid accountId,
-    [FromBody] AddTransactionRequest request,
-    CancellationToken ct)
+        Guid accountId,
+        [FromBody] AddTransactionRequest request,
+        CancellationToken ct)
     {
         if (!Enum.IsDefined(typeof(TransactionType), request.TransactionType))
             return BadRequest("Invalid transaction type. Allowed values are 0 (Credit) or 1 (Debit).");
-
 
         try
         {
@@ -79,4 +53,4 @@ public class AccountsController : ControllerBase
             return BadRequest(new { Message = ex.Message });
         }
     }
- }
+}

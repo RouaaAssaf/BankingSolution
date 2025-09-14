@@ -2,10 +2,12 @@
 
 public interface IAccountRepository
 {
-    Task<Account?> GetByIdAsync(Guid accountId, CancellationToken ct); // Add this
+    Task<Account?> GetByIdAsync(Guid accountId, CancellationToken ct);
+    Task<Account?> GetByCustomerIdAsync(Guid customerId, CancellationToken ct);
     Task<Account> AddAsync(Account account, CancellationToken ct);
-    Task AddTransactionAsync(Transaction transaction, CancellationToken ct);
+    Task<decimal> AddTransactionAsync(Transaction transaction, CancellationToken ct);
     Task<int> SaveChangesAsync(CancellationToken ct);
+    Task UpdateAsync(Account account, CancellationToken ct);
 }
 
 

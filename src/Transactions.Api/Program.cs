@@ -1,21 +1,18 @@
 using Banking.Application.Abstractions;
-using Banking.Application.Accounts;
-using Banking.Application.Customers;
 using Banking.Infrastructure.Data;
-using Banking.Infrastructure.Repositories;
 using Banking.Infrastructure.Repositories.Mongo;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using MongoDB.Driver;
-using System.Reflection;
+using Banking.Messaging;
+using MediatR;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
-
+using MongoDB.Driver;
+using System.Reflection;
+using Transactions.Api.Consumers; 
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services
+// --- Controllers & JSON options ---
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -23,25 +20,18 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.DictionaryKeyPolicy = null;
     });
 
-// Swagger
+// --- Swagger ---
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Logging
+// --- Logging ---
 builder.Services.AddLogging();
 
+// --- Database selection ---
 var useDatabase = builder.Configuration["UseDatabase"];
 
-if (useDatabase == "EFCore")
-{
-    builder.Services.AddDbContext<BankingDbContext>(options =>
-        options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-    builder.Services.AddScoped<IAccountRepository, AccountRepository>();
-    builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
-    builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
-}
-else if (useDatabase == "Mongo")
+ if (useDatabase == "Mongo")
 {
     BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
     var mongoSettings = builder.Configuration.GetSection("Mongo");
@@ -55,13 +45,22 @@ else if (useDatabase == "Mongo")
     builder.Services.AddScoped<ICustomerRepository, MongoCustomerRepository>();
 }
 
+// --- MediatR ---
 builder.Services.AddMediatR(cfg =>
     cfg.RegisterServicesFromAssembly(Assembly.Load("Banking.Application"))
 );
 
+// --- Messaging ---
+builder.Services.AddSingleton<IEventPublisher, RabbitMqEventPublisher>();
+
+// --- Register consumers (correct namespaces) ---
+builder.Services.AddHostedService<CustomerCreatedConsumer>();
+
+
+// --- Build app ---
 var app = builder.Build();
 
-// Middleware
+// --- Middleware ---
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
@@ -78,14 +77,9 @@ app.UseRouting();
 app.UseAuthorization();
 app.MapControllers();
 
+// --- Seed database ---
 
-if (useDatabase == "EFCore")
-{
-    using var scope = app.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<BankingDbContext>();
-    await DbSeeder.SeedAsync(db);
-}
-else if (useDatabase == "Mongo")
+ if (useDatabase == "Mongo")
 {
     using var scope = app.Services.CreateScope();
     var mongo = scope.ServiceProvider.GetRequiredService<IMongoDatabase>();

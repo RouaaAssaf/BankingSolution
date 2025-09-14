@@ -19,7 +19,7 @@ public class MongoCustomerRepository : ICustomerRepository
 
     public async Task<Customer?> GetByIdAsync(Guid id, CancellationToken ct)
     {
-        // 1. Get customer
+        // Get customer
         var customer = await _customers
             .Find(c => c.Id == id)
             .FirstOrDefaultAsync(ct);
@@ -27,7 +27,7 @@ public class MongoCustomerRepository : ICustomerRepository
         if (customer == null)
             return null;
 
-        // 2. Get accounts for this customer
+        //  Get accounts for this customer
         var accounts = await _accounts
             .Find(a => a.CustomerId == id)
             .ToListAsync(ct);
@@ -38,14 +38,14 @@ public class MongoCustomerRepository : ICustomerRepository
             return customer;
         }
 
-        // 3. Get transactions for these accounts
+        //  Get transactions for these accounts
         var accountIds = accounts.Select(a => a.Id).ToList();
 
         var transactions = await _transactions
             .Find(t => accountIds.Contains(t.AccountId))
             .ToListAsync(ct);
 
-        // 4. Wire transactions into each account
+        //  Wire transactions into each account
         foreach (var account in accounts)
         {
             account.Transactions = transactions
@@ -53,9 +53,32 @@ public class MongoCustomerRepository : ICustomerRepository
                 .ToList();
         }
 
-        // 5. Wire accounts into customer
+        //  Wire accounts into customer
         customer.Accounts = accounts;
 
         return customer;
+    }
+
+    // Insert new customer (used by CustomerCreatedEvent handler)
+    public async Task<Customer> AddAsync(Customer customer, CancellationToken ct)
+    {
+        await _customers.InsertOneAsync(customer, cancellationToken: ct);
+        return customer;
+    }
+
+    // Update existing customer info (e.g. email change)
+    public async Task UpdateAsync(Customer customer, CancellationToken ct)
+    {
+        await _customers.ReplaceOneAsync(
+            c => c.Id == customer.Id,
+            customer,
+            new ReplaceOptions { IsUpsert = false },
+            ct
+        );
+    }
+   
+    public Task<int> SaveChangesAsync(CancellationToken ct)
+    {
+        return Task.FromResult(0);
     }
 }

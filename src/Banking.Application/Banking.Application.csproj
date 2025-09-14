@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Banking.Domain\Banking.Domain.csproj" />
+    <ProjectReference Include="..\Banking.Messaging\Banking.Messaging.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,69 +1,69 @@
-﻿using Banking.Application.Abstractions;
+﻿
 using Banking.Domain.Entities;
-using Microsoft.EntityFrameworkCore;
 using MongoDB.Driver;
-
-namespace Banking.Infrastructure.Repositories.Mongo;
 
 public class MongoAccountRepository : IAccountRepository
 {
-    private readonly IMongoCollection<Account> _accounts;
+    private readonly IMongoCollection<Account> _collection;
     private readonly IMongoCollection<Transaction> _transactions;
 
-    public MongoAccountRepository(IMongoDatabase database)
+    public MongoAccountRepository(IMongoDatabase db)
     {
-        _accounts = database.GetCollection<Account>("Accounts");
-        _transactions = database.GetCollection<Transaction>("Transactions");
+        _collection = db.GetCollection<Account>("Accounts");
+        _transactions = db.GetCollection<Transaction>("Transactions");
     }
 
-    // Get a single account by Id
-    public async Task<Account?> GetByIdAsync(Guid accountId, CancellationToken ct)
-    {
-        return await _accounts
-            .Find(a => a.Id == accountId)
-            .FirstOrDefaultAsync(ct);
-    }
-
-    // Add a new account
     public async Task<Account> AddAsync(Account account, CancellationToken ct)
     {
-        await _accounts.InsertOneAsync(account, cancellationToken: ct);
+        await _collection.InsertOneAsync(account, cancellationToken: ct);
         return account;
     }
 
-    public async Task AddTransactionAsync(Transaction transaction, CancellationToken ct)
+    public async Task<Account?> GetByIdAsync(Guid id, CancellationToken ct)
     {
+        var filter = Builders<Account>.Filter.Eq(a => a.Id, id);
+        return await _collection.Find(filter).FirstOrDefaultAsync(ct);
+    }
+
+    public async Task<Account?> GetByCustomerIdAsync(Guid customerId, CancellationToken ct)
+    {
+        var filter = Builders<Account>.Filter.Eq(a => a.CustomerId, customerId);
+        return await _collection.Find(filter).FirstOrDefaultAsync(ct);
+    }
+
+    public async Task UpdateAsync(Account account, CancellationToken ct)
+    {
+        var filter = Builders<Account>.Filter.Eq(a => a.Id, account.Id);
+        await _collection.ReplaceOneAsync(filter, account, cancellationToken: ct);
+    }
+
+    public async Task<decimal> AddTransactionAsync(Transaction transaction, CancellationToken ct)
+    {
+        //  Update the account balance
+        var filter = Builders<Account>.Filter.Eq(a => a.Id, transaction.AccountId);
+        var update = transaction.Type == TransactionType.Credit
+            ? Builders<Account>.Update.Inc(a => a.Balance, transaction.Amount)
+            : Builders<Account>.Update.Inc(a => a.Balance, -transaction.Amount);
+
+        // Return the updated account after update
+        var options = new FindOneAndUpdateOptions<Account>
+        {
+            ReturnDocument = ReturnDocument.After
+        };
+        var updatedAccount = await _collection.FindOneAndUpdateAsync(filter, update, options, ct);
+        if (updatedAccount == null)
+            throw new KeyNotFoundException("Account not found");
+
+        // Insert the transaction into Transactions collection
         await _transactions.InsertOneAsync(transaction, cancellationToken: ct);
 
-        var amountChange = transaction.Type == TransactionType.Credit
-            ? transaction.Amount
-            : -transaction.Amount;
-
-        var update = Builders<Account>.Update
-            .Inc("Balance", amountChange) // increment persisted balance
-            .Push(a => a.Transactions, transaction); // also push the transaction
-
-        await _accounts.UpdateOneAsync(
-            Builders<Account>.Filter.Eq(a => a.Id, transaction.AccountId),
-            update,
-            cancellationToken: ct
-        );
+        //  Return the updated balance
+        return updatedAccount.Balance;
     }
 
-
-
-
-    // Optional: get all accounts for a customer
-    public async Task<List<Account>> GetByCustomerIdAsync(Guid customerId, CancellationToken ct)
-    {
-        return await _accounts
-            .Find(a => a.CustomerId == customerId)
-            .ToListAsync(ct);
-    }
-
-    // SaveChangesAsync is not needed for Mongo, but must be here to satisfy interface
     public Task<int> SaveChangesAsync(CancellationToken ct)
     {
+        // MongoDB writes are immediate, no unit of work
         return Task.FromResult(0);
     }
 }
