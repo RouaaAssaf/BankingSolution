@@ -25,8 +25,9 @@ jobs:
         options: --health-cmd="rabbitmqctl status" --health-interval=10s --health-timeout=5s --health-retries=5
 
     env:
-      MONGODB_CONNECTION: mongodb://localhost:27017
-      RABBITMQ_CONNECTION: amqp://guest:guest@localhost:5672/
+      MONGODB_CONNECTION: mongodb://mongo:27017
+      RABBITMQ_CONNECTION: amqp://guest:guest@rabbitmq:5672/
+
 
     steps:
       - name: Checkout repository
