@@ -7,8 +7,31 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
-    runs-on: windows-latest
+  build-and-test:
+    runs-on: ubuntu-latest  # Linux runner is better for Docker containers
+
+    services:
+      mongo:
+        image: mongo:6.0
+        options: > 
+          --health-cmd="mongosh --eval 'db.adminCommand(\"ping\")'"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+      rabbitmq:
+        image: rabbitmq:3-management
+        ports:
+          - 5672:5672
+          - 15672:15672
+        options: > 
+          --health-cmd="rabbitmqctl status"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      MONGODB_CONNECTION: mongodb://localhost:27017
+      RABBITMQ_CONNECTION: amqp://guest:guest@localhost:5672/
 
     steps:
       - name: Checkout repository
