@@ -45,20 +45,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nuget-
 
-      - name: Wait for MongoDB to be ready
-        run: |
-          until mongosh --host mongo  --eval "db.adminCommand('ping')" > /dev/null 2>&1; do
-            echo "Waiting for MongoDB..."
-            sleep 2
-          done
-
-      - name: Wait for RabbitMQ to be ready
-        run: |
-          until rabbitmqctl -n rabbit@$(hostname) status > /dev/null 2>&1; do
-            echo "Waiting for RabbitMQ..."
-            sleep 2
-          done
-
       - name: Restore NuGet packages
         run: dotnet restore
 
