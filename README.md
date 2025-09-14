@@ -89,9 +89,8 @@ APIs will be available at:
 ### Transactions.Api
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST   | /api/accounts | Open a new account for a customer |
 | POST   | /api/accounts/{accountId}/transactions | Add a transaction (credit/debit) |
-
+      
 ---
 
 ## Unit Tests
