@@ -6,8 +6,8 @@
 [![Build](https://img.shields.io/badge/Build-Passing-brightgreen)](#)  
 [![License](https://img.shields.io/badge/License-MIT-lightgrey)](LICENSE)  
 
-BankingSolution is a **.NET 8 microservices-based banking system** that demonstrates **event-driven architecture** using **RabbitMQ** and **MongoDB**.  
-It allows creating customers, opening accounts, recording transactions, and viewing customer summaries through **CQRS-style projections**. *(Mini-Banking application)*  
+BankingSolution is a **.NET 8 microservices-based banking system** demonstrating **event-driven architecture** with **RabbitMQ** and **MongoDB**.  
+It allows creating customers, opening accounts, recording transactions, and viewing summaries via **CQRS-style projections**.
 
 ---
 
@@ -34,44 +34,51 @@ It allows creating customers, opening accounts, recording transactions, and view
 
 ## Requirements  
 - .NET 8 SDK  
-- MongoDB (for data storage)  
-- RabbitMQ (for message/event handling)  
+- MongoDB  
+- RabbitMQ  
 
 ---
 
 ## Configurations  
-Set `appsettings.json`:  
+Set `appsettings.json`:
 
 ```json
-"Mongo": {
-  "ConnectionString": "mongodb://localhost:27017",
-  "DatabaseName": "BankingDb"
-},
-"RabbitMq": {
-  "ConnectionString": "amqp://guest:guest@localhost:5672/",
-  "Exchange": "domain.events"
+{
+  "Mongo": {
+    "ConnectionString": "mongodb://localhost:27017",
+    "DatabaseName": "BankingDb"
+  },
+  "RabbitMq": {
+    "ConnectionString": "amqp://guest:guest@localhost:5672/",
+    "Exchange": "domain.events"
+  }
 }
 Setup Instructions
-Clone the repository:
-
+Clone the repository
 bash
 Copy code
 git clone https://github.com/RouaaAssaf/BankingSolution.git
 cd BankingSolution
-Restore NuGet packages:
-
+Restore NuGet packages
 bash
 Copy code
 dotnet restore
-Start RabbitMQ and MongoDB locally.
-
-Run the services:
-
+Start RabbitMQ & MongoDB (locally)
 bash
 Copy code
+# RabbitMQ
+docker run -d --hostname my-rabbit --name rabbitmq -p 5672:5672 -p 15672:15672 rabbitmq:3-management
+
+# MongoDB
+docker run -d --name mongodb -p 27017:27017 -v mongo-data:/data/db mongo:6.0
+Run the services
+bash
+Copy code
+# Transactions API
 cd src/Transactions.Api
 dotnet run
 
+# Customers API
 cd src/Customers.Api
 dotnet run
 APIs will be available at:
@@ -88,11 +95,11 @@ GET	/api/customers/{id}/summary	Get customer summary (accounts + balances)
 
 Transactions.Api
 Method	Endpoint	Description
-POST	/api/accounts	Open a new account for a customer
+POST	/api/accounts	Open a new account
 POST	/api/accounts/{accountId}/transactions	Add a transaction (credit/debit)
 
 Unit Tests
-All unit tests are in the tests/Banking.UnitTests folder:
+All unit tests are in tests/Banking.UnitTests:
 
 bash
 Copy code
@@ -109,7 +116,7 @@ Content-Type: application/json
   "lastName": "Doe",
   "email": "john.doe@email.com"
 }
-➡️ Publishes CustomerCreatedEvent → Transactions.Api automatically opens an account for the customer.
+➡️ Publishes CustomerCreatedEvent → Transactions.Api opens account automatically.
 
 2. Add Transaction
 http
@@ -122,20 +129,21 @@ Content-Type: application/json
   "type": "Credit",
   "description": "Salary deposit"
 }
-➡️ Publishes TransactionCreatedEvent + AccountBalanceUpdatedEvent.
-Customers.Api consumes the balance update and refreshes the customer’s summary.
+➡️ Publishes TransactionCreatedEvent + AccountBalanceUpdatedEvent
+Customers.Api consumes the balance update to refresh summaries.
 
 3. Get Customer Summary
 http
 Copy code
 GET /api/customers/{customerId}/summary
-Event Flow Diagram (Optional)
+Event Flow Diagram
 mermaid
 Copy code
 sequenceDiagram
     participant C as Customers.Api
     participant T as Transactions.Api
     participant MQ as RabbitMQ
+
     C->>MQ: CustomerCreatedEvent
     MQ->>T: CustomerCreatedEvent
     T->>MQ: AccountCreatedEvent
@@ -144,7 +152,10 @@ sequenceDiagram
     T->>MQ: AccountBalanceUpdatedEvent
     MQ->>C: AccountBalanceUpdatedEvent
 Notes
-✅ The API now uses MongoDB for persistence (SQLite removed).
-✅ Cross-service communication happens via RabbitMQ events (not API calls).
-✅ Projections in Customers.Api are kept up to date by consuming AccountCreatedEvent and AccountBalanceUpdatedEvent.
-✅ No need to run dotnet ef database update anymore — there are no EF Core migrations in this version.
+✅ MongoDB is used for persistence (SQLite removed)
+
+✅ Services communicate via RabbitMQ events (no API calls)
+
+✅ Projections in Customers.Api are updated via AccountCreatedEvent & AccountBalanceUpdatedEvent
+
+✅ No EF Core migrations needed anymore
