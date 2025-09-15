@@ -61,11 +61,37 @@ builder.Services.AddScoped<CustomerAccountsProjectionRepository>();
 // --- Build app ---
 var app = builder.Build();
 
+
 // --- Middleware ---
-if (app.Environment.IsDevelopment())
-{
-    app.UseDeveloperExceptionPage();
-}
+    
+    app.UseExceptionHandler(appBuilder =>
+    {
+        appBuilder.Run(async context =>
+        {
+            context.Response.ContentType = "application/json";
+
+            var feature = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>();
+            if (feature != null)
+            {
+                var ex = feature.Error;
+
+                context.Response.StatusCode = ex switch
+                {
+                    InvalidOperationException => StatusCodes.Status400BadRequest,
+                    ArgumentException => StatusCodes.Status400BadRequest,
+                    _ => StatusCodes.Status500InternalServerError
+                };
+
+                var result = new
+                {
+                    error = ex.Message
+                };
+
+                await context.Response.WriteAsJsonAsync(result);
+            }
+        });
+    });
+
 
 app.UseSwagger();
 app.UseSwaggerUI(c =>
