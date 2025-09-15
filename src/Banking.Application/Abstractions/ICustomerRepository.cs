@@ -3,6 +3,7 @@ namespace Banking.Application.Abstractions;
 public interface ICustomerRepository
 {
     Task<Customer?> GetByIdAsync(Guid id, CancellationToken ct);
+    Task<Customer?> GetByEmailAsync(string email, CancellationToken ct);
     Task<Customer> AddAsync(Customer customer, CancellationToken ct);
     Task<int> SaveChangesAsync(CancellationToken ct);
 }

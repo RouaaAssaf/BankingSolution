@@ -23,6 +23,19 @@ public class CreateCustomerHandler : IRequestHandler<CreateCustomerCommand, Guid
 
     public async Task<Guid> Handle(CreateCustomerCommand request, CancellationToken ct)
     {
+        // Validate input first
+
+        if (string.IsNullOrWhiteSpace(request.Email))
+            throw new ArgumentException("Email is required to create a customer.", nameof(request.Email));
+
+        // Check if a customer with the same email already exists
+
+        var existing = await _customers.GetByEmailAsync(request.Email, ct);
+        if (existing != null)
+            throw new InvalidOperationException($"A customer with email '{request.Email}' already exists.");
+
+
+
         // create domain entity
         var customer = new Customer
         {

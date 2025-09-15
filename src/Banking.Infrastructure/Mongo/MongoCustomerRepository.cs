@@ -17,6 +17,7 @@ public class MongoCustomerRepository : ICustomerRepository
         _transactions = database.GetCollection<Transaction>("Transactions");
     }
 
+
     public async Task<Customer?> GetByIdAsync(Guid id, CancellationToken ct)
     {
         // Get customer
@@ -58,6 +59,14 @@ public class MongoCustomerRepository : ICustomerRepository
 
         return customer;
     }
+
+    public async Task<Customer?> GetByEmailAsync(string email, CancellationToken ct)
+    {
+        return await _customers
+            .Find(c => c.Email == email)
+            .FirstOrDefaultAsync(ct);
+    }
+
 
     // Insert new customer (used by CustomerCreatedEvent handler)
     public async Task<Customer> AddAsync(Customer customer, CancellationToken ct)
