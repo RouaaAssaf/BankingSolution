@@ -28,7 +28,7 @@ It allows creating customers, opening accounts, recording transactions, and view
   - `CustomerCreatedEvent`
   - `AccountCreatedEvent`
   - `TransactionCreatedEvent`
-  - `AccountBalanceUpdatedEvent`
+  
 
 ---
 
@@ -84,12 +84,13 @@ APIs will be available at:
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | POST   | /api/customers | Create a new customer |
-| GET    | /api/customers/{id}/summary | Get customer summary (accounts + balances) |
+
 
 ### Transactions.Api
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | POST   | /api/accounts/{accountId}/transactions | Add a transaction (credit/debit) |
+| GET    | /api/customers/{id}/summary  | Get customer summary (accounts + balances) |
       
 ---
 
@@ -126,7 +127,7 @@ Content-Type: application/json
   "description": "Salary deposit"
 }
 ```
-➡️ Publishes `TransactionCreatedEvent` + `AccountBalanceUpdatedEvent`.  
+➡️ Publishes `TransactionCreatedEvent` .  
 Customers.Api consumes the balance update to refresh the summary.
 
 ### 3. Get Customer Summary
@@ -148,14 +149,14 @@ sequenceDiagram
     T->>MQ: AccountCreatedEvent
     MQ->>C: AccountCreatedEvent
     T->>MQ: TransactionCreatedEvent
-    T->>MQ: AccountBalanceUpdatedEvent
-    MQ->>C: AccountBalanceUpdatedEvent
+    MQ->>C: TransactionCreatedEvent
+    
 ```
 
 ---
 
 ## Notes
 - ✅ MongoDB is used for persistence (SQLite removed)  
-- ✅ Services communicate via RabbitMQ events (no API calls)  
-- ✅ Projections in Customers.Api are updated via `AccountCreatedEvent` & `AccountBalanceUpdatedEvent`  
+- ✅ Services communicate via RabbitMQ events (no API calls) information only shared using the bus (RabbitMQ)
+- ✅ The Customer Database does not talk with Account Database anymore
 - ✅ No EF Core migrations needed anymore
