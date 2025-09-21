@@ -1,14 +1,13 @@
 using Banking.Application.Abstractions;
-using Banking.Infrastructure.Data;
 using Banking.Infrastructure.Repositories.Mongo;
 using Banking.Messaging;
 using Customers.Api.Consumers;
-using Customers.Api.Repositories;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
 using System.Reflection;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,6 +36,7 @@ if (useDatabase == "Mongo")
     var client = new MongoClient(mongoSettings["ConnectionString"]);
     var database = client.GetDatabase(mongoSettings["DatabaseName"]);
 
+
     builder.Services.AddSingleton<IMongoDatabase>(database);
 
     builder.Services.AddScoped<IAccountRepository, MongoAccountRepository>();
@@ -53,9 +53,8 @@ builder.Services.AddMediatR(cfg =>
 builder.Services.AddSingleton<IEventPublisher, RabbitMqEventPublisher>();
 
 // --- Register consumers ---
-builder.Services.AddHostedService<AccountBalanceUpdatedConsumer>();
-builder.Services.AddHostedService<AccountCreatedConsumer>();
-builder.Services.AddScoped<CustomerAccountsProjectionRepository>();
+builder.Services.AddHostedService<TransactionCreatedConsumer>();
+
 
 
 // --- Build app ---
@@ -109,7 +108,7 @@ if (useDatabase == "Mongo")
 {
     using var scope = app.Services.CreateScope();
     var mongo = scope.ServiceProvider.GetRequiredService<IMongoDatabase>();
-    await MongoSeeder.SeedAsync(mongo);
+    //await MongoSeeder.SeedAsync(mongo);
 }
 
 app.Run();

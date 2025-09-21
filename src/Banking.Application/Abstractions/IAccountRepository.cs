@@ -3,6 +3,7 @@
 public interface IAccountRepository
 {
     Task<Account?> GetByIdAsync(Guid accountId, CancellationToken ct);
+    Task<List<Account>> GetAccountsByCustomerIdAsync(Guid customerId, CancellationToken ct);
     Task<Account?> GetByCustomerIdAsync(Guid customerId, CancellationToken ct);
     Task<Account> AddAsync(Account account, CancellationToken ct);
     Task<decimal> AddTransactionAsync(Transaction transaction, CancellationToken ct);

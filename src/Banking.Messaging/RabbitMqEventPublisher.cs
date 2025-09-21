@@ -26,7 +26,7 @@ public class RabbitMqEventPublisher : IEventPublisher, IDisposable
         var bytes = JsonSerializer.SerializeToUtf8Bytes(@event);
         var props = _chan.CreateBasicProperties();
         props.ContentType = "application/json";
-        props.DeliveryMode = 2; // persistent
+        props.DeliveryMode = 2;
         _chan.BasicPublish(_exchange, routingKey, props, bytes);
         return Task.CompletedTask;
     }

@@ -6,87 +6,108 @@ using RabbitMQ.Client.Events;
 using System.Text;
 using System.Text.Json;
 
-namespace Transactions.Api.Consumers;
-public class CustomerCreatedConsumer : BackgroundService
+
+namespace Transactions.Api.Consumers
 {
-    private readonly IServiceScopeFactory _scopes;
-    private readonly IConfiguration _cfg;
-    private readonly IConnection _conn;
-    private readonly IModel _chan;
-    private readonly string _exchange;
-    private readonly ILogger<CustomerCreatedConsumer> _logger;
-
-    public CustomerCreatedConsumer(IServiceScopeFactory scopes, IConfiguration cfg, ILogger<CustomerCreatedConsumer> logger)
+    public class CustomerCreatedConsumer : BackgroundService
     {
-        _scopes = scopes;
-        _cfg = cfg;
-        _exchange = cfg["RabbitMq:Exchange"] ?? "domain.events";
+        private readonly IServiceScopeFactory _scopes;
+        private readonly ILogger<CustomerCreatedConsumer> _logger;
+        private readonly IConnection _connection;
+        private readonly IModel _channel;
+        private readonly string _exchange;
 
-        var connStr = cfg["RabbitMq:ConnectionString"];
-        if (string.IsNullOrWhiteSpace(connStr))
+        public CustomerCreatedConsumer(IServiceScopeFactory scopes, ILogger<CustomerCreatedConsumer> logger, IConfiguration cfg)
         {
-            throw new InvalidOperationException("RabbitMq:ConnectionString is missing in configuration.");
+            _scopes = scopes;
+            _logger = logger;
+
+            _exchange = cfg["RabbitMq:Exchange"] ?? "domain.events";
+            var connStr = cfg["RabbitMq:ConnectionString"];
+            if (string.IsNullOrWhiteSpace(connStr))
+                throw new InvalidOperationException("RabbitMq:ConnectionString is missing in configuration.");
+
+            var factory = new ConnectionFactory
+            {
+                Uri = new Uri(connStr),
+                DispatchConsumersAsync = true
+            };
+
+            _connection = factory.CreateConnection();
+            _channel = _connection.CreateModel();
+            _channel.ExchangeDeclare(_exchange, ExchangeType.Topic, durable: true);
+
+            // declare and bind queue
+            _channel.QueueDeclare("account-service.customer-created", durable: true, exclusive: false, autoDelete: false);
+            _channel.QueueBind("account-service.customer-created", _exchange, "customer.created");
         }
 
-        var factory = new ConnectionFactory
+        protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            Uri = new Uri(connStr),
-            DispatchConsumersAsync = true
-        };
+            _logger.LogInformation("CustomerCreatedConsumer starting... Listening on queue: account-service.customer-created");
 
-        _conn = factory.CreateConnection();
-        _chan = _conn.CreateModel();
-        _chan.ExchangeDeclare(_exchange, ExchangeType.Topic, durable: true);
-        _chan.QueueDeclare("account-service.customer-created", durable: true, exclusive: false, autoDelete: false);
-        _chan.QueueBind("account-service.customer-created", _exchange, "customer.created");
-        _logger = logger;
-    }
+            var consumer = new AsyncEventingBasicConsumer(_channel);
+            consumer.Received += async (sender, ea) =>
+            {
+                var json = Encoding.UTF8.GetString(ea.Body.ToArray());
+                _logger.LogInformation("Message received from RabbitMQ: {Message}", json);
 
-    protected override Task ExecuteAsync(CancellationToken stoppingToken)
-    {
-        _logger.LogInformation("CustomerCreatedConsumer starting... Listening on queue: {Queue}", "account-service.customer-created");
+                CustomerCreatedEvent? evt = null;
+                try
+                {
+                    evt = JsonSerializer.Deserialize<CustomerCreatedEvent>(json);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to deserialize CustomerCreatedEvent. Raw message: {Message}", json);
+                }
 
-        var consumer = new AsyncEventingBasicConsumer(_chan);
-        consumer.Received += async (s, ea) =>
+                if (evt != null)
+                {
+                    try
+                    {
+                        // safe async processing in a separate method
+                        await HandleCustomerCreatedEventAsync(evt, stoppingToken);
+                        _channel.BasicAck(ea.DeliveryTag, false);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error handling CustomerCreatedEvent.");
+                        _channel.BasicNack(ea.DeliveryTag, false, requeue: true);
+                    }
+                }
+                else
+                {
+                    _channel.BasicAck(ea.DeliveryTag, false);
+                }
+            };
+
+            _channel.BasicConsume("account-service.customer-created", autoAck: false, consumer);
+            return Task.CompletedTask;
+        }
+
+        
+        public async Task HandleCustomerCreatedEventAsync(CustomerCreatedEvent evt, CancellationToken stoppingToken)
         {
-            var json = Encoding.UTF8.GetString(ea.Body.ToArray());
-            _logger.LogInformation("Message received from RabbitMQ: {Message}", json);
-
-            CustomerCreatedEvent? evt = null;
-            try
-            {
-                evt = JsonSerializer.Deserialize<CustomerCreatedEvent>(json);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to deserialize CustomerCreatedEvent. Raw message: {Message}", json);
-            }
-
-            if (evt == null)
-            {
-                _logger.LogWarning("Skipping message — could not deserialize into CustomerCreatedEvent.");
-                _chan!.BasicAck(ea.DeliveryTag, false);
-                return;
-            }
-
             using var scope = _scopes.CreateScope();
             var accounts = scope.ServiceProvider.GetRequiredService<IAccountRepository>();
             var publisher = scope.ServiceProvider.GetRequiredService<IEventPublisher>();
 
-            // Check for existing account
             var existing = await accounts.GetByCustomerIdAsync(evt.CustomerId, stoppingToken);
+            _logger.LogInformation("Existing account: {Existing}", existing);
+
             if (existing != null)
             {
                 _logger.LogInformation("Account already exists for CustomerId {CustomerId}. Skipping creation.", evt.CustomerId);
-                _chan.BasicAck(ea.DeliveryTag, false);
                 return;
             }
 
-            // Create new account
             var account = new Account
             {
                 Id = Guid.NewGuid(),
                 CustomerId = evt.CustomerId,
+                FirstName = evt.FirstName,
+                LastName = evt.LastName,
                 OpenedAt = DateTime.UtcNow,
                 Balance = 0m
             };
@@ -95,26 +116,18 @@ public class CustomerCreatedConsumer : BackgroundService
 
             await accounts.AddAsync(account, stoppingToken);
             await accounts.SaveChangesAsync(stoppingToken);
+
             _logger.LogInformation("Account {AccountId} saved to repository.", account.Id);
 
-            // Publish AccountCreated event
-            var accountCreated = new AccountCreatedEvent(account.Id, account.CustomerId, account.Balance, DateTime.UtcNow);
-            await publisher.PublishAsync("account.created", accountCreated, stoppingToken);
-            _logger.LogInformation("Published AccountCreatedEvent for Account {AccountId}, Customer {CustomerId}", account.Id, account.CustomerId);
+           
+        }
 
-            _chan.BasicAck(ea.DeliveryTag, false);
-            _logger.LogInformation("Message acknowledged.");
-        };
-
-        _chan.BasicConsume("account-service.customer-created", autoAck: false, consumer);
-        return Task.CompletedTask;
-    }
-
-    public override void Dispose()
-    {
-        _logger.LogInformation("Disposing CustomerCreatedConsumer resources.");
-        _chan?.Close();
-        _conn?.Close();
-        base.Dispose();
+        public override void Dispose()
+        {
+            _logger.LogInformation("Disposing CustomerCreatedConsumer resources.");
+            _channel?.Close();
+            _connection?.Close();
+            base.Dispose();
+        }
     }
 }

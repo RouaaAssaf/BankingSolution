@@ -2,6 +2,7 @@
 
 namespace Banking.Application.Accounts;
 
+
 public class AddTransactionRequest
 {
     public decimal Amount { get; set; }

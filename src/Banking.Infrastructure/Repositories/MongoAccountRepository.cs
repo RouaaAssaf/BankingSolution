@@ -24,7 +24,11 @@ public class MongoAccountRepository : IAccountRepository
         var filter = Builders<Account>.Filter.Eq(a => a.Id, id);
         return await _collection.Find(filter).FirstOrDefaultAsync(ct);
     }
-
+    public async Task<List<Account>> GetAccountsByCustomerIdAsync(Guid customerId, CancellationToken ct)
+    {
+ 
+        return await _collection.Find(a => a.CustomerId == customerId).ToListAsync(ct);
+    }
     public async Task<Account?> GetByCustomerIdAsync(Guid customerId, CancellationToken ct)
     {
         var filter = Builders<Account>.Filter.Eq(a => a.CustomerId, customerId);

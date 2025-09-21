@@ -1,5 +1,4 @@
-using Banking.Application.Customers;
-using Banking.Application.Customers.Queries;
+
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -22,22 +21,6 @@ public class CustomersController : ControllerBase
     {
         var command = new CreateCustomerCommand(request.FirstName, request.LastName, request.Email);
         var id = await _mediator.Send(command, ct);
-        return CreatedAtAction(nameof(GetSummary), new { id }, new { CustomerId = id });
-    }
-
-    [HttpGet("{id:guid}/summary")]
-    public async Task<ActionResult<CustomerSummaryResponse>> GetSummary(Guid id, CancellationToken ct)
-    {
-        var query = new GetCustomerSummaryQuery(id);
-
-        try
-        {
-            var summary = await _mediator.Send(query, ct);
-            return Ok(summary);
-        }
-        catch (KeyNotFoundException ex) // thrown if customer not found
-        {
-            return NotFound(new { message = ex.Message });
-        }
+        return CreatedAtAction(null, new { id }, new { CustomerId = id });
     }
 }

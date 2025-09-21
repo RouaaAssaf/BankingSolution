@@ -3,6 +3,7 @@ using Banking.Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
+
 namespace Transactions.Api.Controllers;
 
 [ApiController]
@@ -28,7 +29,7 @@ public class AccountsController : ControllerBase
 
         try
         {
-            // Map DTO → Command
+            
             var command = new AddTransactionCommand(
                 accountId,
                 request.Amount,
@@ -53,4 +54,13 @@ public class AccountsController : ControllerBase
             return BadRequest(new { Message = ex.Message });
         }
     }
+
+    [HttpGet("customers/{customerId:guid}/summary")]
+    public async Task<IActionResult> GetCustomerSummary(Guid customerId, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new GetCustomerSummaryQuery(customerId), ct);
+        if (result == null) return NotFound(new { Message = "Customer not found" });
+        return Ok(result);
+    }
+
 }
