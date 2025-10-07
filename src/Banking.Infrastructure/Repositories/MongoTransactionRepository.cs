@@ -13,6 +13,14 @@ public class MongoTransactionRepository : ITransactionRepository
         _transactions = database.GetCollection<Transaction>("Transactions");
     }
 
+    public async Task<int> CountTransactionsAsync(Func<Transaction, bool>? filter, CancellationToken ct)
+    {
+        if (filter == null)
+            return (int)await _transactions.CountDocumentsAsync(FilterDefinition<Transaction>.Empty, cancellationToken: ct);
+
+        var all = await _transactions.Find(_ => true).ToListAsync(ct);
+        return all.Count(filter);
+    }
     public async Task<IEnumerable<Transaction>> GetByAccountIdAsync(Guid accountId, CancellationToken ct)
     {
         return await _transactions.Find(t => t.AccountId == accountId).ToListAsync(ct);

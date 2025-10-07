@@ -60,8 +60,17 @@ builder.Services.AddSingleton<IEventPublisher, RabbitMqEventPublisher>();
 // --- Register consumers ---
 builder.Services.AddHostedService<CustomerCreatedConsumer>();
 
+builder.Services.AddCors();
 // --- Build app ---
 var app = builder.Build();
+
+// Enable CORS for all origins globally
+app.UseCors(policy =>
+    policy
+        .AllowAnyOrigin()
+        .AllowAnyMethod()
+        .AllowAnyHeader()
+);
 
 // --- Middleware ---
 if (app.Environment.IsDevelopment())
@@ -79,4 +88,5 @@ app.UseSwaggerUI(c =>
 app.UseRouting();
 app.UseAuthorization();
 app.MapControllers();
+app.MapFallbackToFile("index.html");
 app.Run();

@@ -1,6 +1,6 @@
 ﻿using Banking.Domain.Entities;
 
-namespace Banking.Application.Accounts;
+namespace Banking.Application.DTOs;
 
 
 public class AddTransactionRequest

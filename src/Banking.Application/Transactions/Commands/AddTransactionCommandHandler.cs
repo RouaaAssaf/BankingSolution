@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace Banking.Application.Transactions.Commands;
+
 public class AddTransactionHandler : IRequestHandler<AddTransactionCommand, Guid>
 {
     private readonly IAccountRepository _accounts;
@@ -23,15 +24,21 @@ public class AddTransactionHandler : IRequestHandler<AddTransactionCommand, Guid
 
     public async Task<Guid> Handle(AddTransactionCommand request, CancellationToken ct)
     {
-        // Get the account
+        // 🔹 1. Validate Account
         var account = await _accounts.GetByIdAsync(request.AccountId, ct);
         if (account == null)
         {
             _logger.LogWarning("Account {AccountId} not found", request.AccountId);
-            throw new Exception("Account not found");
+            throw new KeyNotFoundException($"Account with ID {request.AccountId} not found.");
         }
 
-        // Create transaction
+        // 🔹 2. Validate Amount
+        if (request.Amount <= 0)
+        {
+            throw new ArgumentException("Amount must be greater than zero.");
+        }
+
+        // 🔹 3. Create Transaction Object
         var transaction = new Transaction
         {
             Id = Guid.NewGuid(),
@@ -44,10 +51,10 @@ public class AddTransactionHandler : IRequestHandler<AddTransactionCommand, Guid
 
         _logger.LogInformation("Created transaction {TransactionId} for Account {AccountId}", transaction.Id, account.Id);
 
-        // Insert transaction + update balance atomically
+        // 🔹 4. Update Account and Insert Transaction
         var updatedBalance = await _accounts.AddTransactionAsync(transaction, ct);
 
-        // Publish TransactionCreatedEvent
+        // 🔹 5. Publish Event
         var transactionEvent = new TransactionCreatedEvent(
             transaction.Id,
             transaction.AccountId,
@@ -58,8 +65,6 @@ public class AddTransactionHandler : IRequestHandler<AddTransactionCommand, Guid
             transaction.CreatedAt
         );
         await _publisher.PublishAsync("transaction.created", transactionEvent, ct);
-
-        
 
         return transaction.Id;
     }

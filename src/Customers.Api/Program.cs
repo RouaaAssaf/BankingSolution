@@ -55,41 +55,49 @@ builder.Services.AddSingleton<IEventPublisher, RabbitMqEventPublisher>();
 // --- Register consumers ---
 builder.Services.AddHostedService<TransactionCreatedConsumer>();
 
-
-
+builder.Services.AddCors();
 // --- Build app ---
 var app = builder.Build();
 
+// Enable CORS for all origins globally
+app.UseCors(policy =>
+    policy
+        .AllowAnyOrigin()
+        .AllowAnyMethod()
+        .AllowAnyHeader()
+);
 
 // --- Middleware ---
-    
-    app.UseExceptionHandler(appBuilder =>
+
+app.UseExceptionHandler(appBuilder =>
+{
+    appBuilder.Run(async context =>
     {
-        appBuilder.Run(async context =>
+        context.Response.ContentType = "application/json";
+
+        var feature = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>();
+        if (feature != null)
         {
-            context.Response.ContentType = "application/json";
+            var ex = feature.Error;
 
-            var feature = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>();
-            if (feature != null)
+            // Match specific error types
+            context.Response.StatusCode = ex switch
             {
-                var ex = feature.Error;
+                ArgumentException => StatusCodes.Status400BadRequest, // bad input
+                InvalidOperationException => StatusCodes.Status409Conflict, // conflict / duplicate
+                _ => StatusCodes.Status500InternalServerError
+            };
 
-                context.Response.StatusCode = ex switch
-                {
-                    InvalidOperationException => StatusCodes.Status400BadRequest,
-                    ArgumentException => StatusCodes.Status400BadRequest,
-                    _ => StatusCodes.Status500InternalServerError
-                };
+            var result = new
+            {
+                error = ex.Message,
+                statusCode = context.Response.StatusCode
+            };
 
-                var result = new
-                {
-                    error = ex.Message
-                };
-
-                await context.Response.WriteAsJsonAsync(result);
-            }
-        });
+            await context.Response.WriteAsJsonAsync(result);
+        }
     });
+});
 
 
 app.UseSwagger();
@@ -102,6 +110,7 @@ app.UseSwaggerUI(c =>
 app.UseRouting();
 app.UseAuthorization();
 app.MapControllers();
+app.MapFallbackToFile("index.html");
 
 // --- Seed database ---
 if (useDatabase == "Mongo")

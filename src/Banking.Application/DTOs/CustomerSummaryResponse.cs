@@ -22,4 +22,12 @@ public record CustomerSummaryResponse(
         string Description,
         DateTime CreatedAt
     );
+    public record AccountInfoResponse(
+    Guid AccountId,
+    Guid CustomerId,
+    decimal Balance,
+    DateTime OpenedAt,
+    string FirstName,
+    string LastName
+    );
 }

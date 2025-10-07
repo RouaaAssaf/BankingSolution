@@ -1,5 +1,6 @@
 ﻿using Banking.Application.Abstractions;
 using Banking.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 using MongoDB.Driver;
 
 
@@ -10,6 +11,7 @@ namespace Banking.Infrastructure.Repositories.Mongo
         private readonly IMongoCollection<Customer> _customers;
         private readonly IMongoCollection<Account> _accounts;
         private readonly IMongoCollection<Transaction> _transactions;
+
 
         public MongoCustomerRepository(IMongoDatabase database)
         {
@@ -56,6 +58,10 @@ namespace Banking.Infrastructure.Repositories.Mongo
         public Task<int> SaveChangesAsync(CancellationToken ct)
         {
             return Task.FromResult(0);
+        }
+        public async Task<IEnumerable<Customer>> GetAllAsync(CancellationToken ct)
+        {
+            return await _customers.Find(_ => true).ToListAsync(ct);
         }
     }
 }

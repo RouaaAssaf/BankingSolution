@@ -21,6 +21,15 @@ public class CustomersController : ControllerBase
     {
         var command = new CreateCustomerCommand(request.FirstName, request.LastName, request.Email);
         var id = await _mediator.Send(command, ct);
-        return CreatedAtAction(null, new { id }, new { CustomerId = id });
+        return CreatedAtAction(null, new { id }, new { id });
     }
+
+    [HttpGet]
+    public async Task<IActionResult> GetAll(CancellationToken ct)
+    {
+        var customers = await _mediator.Send(new GetAllCustomersQuery(), ct);
+        // make sure you have a query handler that returns a list of customers
+        return Ok(customers);
+    }
+
 }

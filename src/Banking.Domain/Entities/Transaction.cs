@@ -5,6 +5,13 @@ public enum TransactionType
     Debit = 1
 }
 
+public enum TransactionStatus
+{
+    Pending,
+    Completed,
+    Failed
+}
+
 public class Transaction
 {
     
@@ -15,4 +22,6 @@ public class Transaction
     public TransactionType Type { get; set; }
     public string Description { get; set; } = default!;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public TransactionStatus Status { get; set; } = TransactionStatus.Pending;
 }

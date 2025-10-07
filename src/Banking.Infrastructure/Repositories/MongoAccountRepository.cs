@@ -6,11 +6,24 @@ public class MongoAccountRepository : IAccountRepository
 {
     private readonly IMongoCollection<Account> _collection;
     private readonly IMongoCollection<Transaction> _transactions;
+    private readonly IMongoCollection<Account> _accounts;
 
     public MongoAccountRepository(IMongoDatabase db)
     {
         _collection = db.GetCollection<Account>("Accounts");
         _transactions = db.GetCollection<Transaction>("Transactions");
+        _accounts = db.GetCollection<Account>("Accounts");
+    }
+
+    public async Task<int> GetTotalAccountsAsync(CancellationToken ct)
+    {
+        return (int)await _accounts.CountDocumentsAsync(_ => true, cancellationToken: ct);
+    }
+
+    public async Task<int> GetDistinctCustomerCountAsync(CancellationToken ct)
+    {
+        var distinct = await _accounts.DistinctAsync<Guid>("CustomerId", FilterDefinition<Account>.Empty, cancellationToken: ct);
+        return (await distinct.ToListAsync(ct)).Count;
     }
 
     public async Task<Account> AddAsync(Account account, CancellationToken ct)
@@ -65,7 +78,30 @@ public class MongoAccountRepository : IAccountRepository
         return updatedAccount.Balance;
     }
 
-    public Task<int> SaveChangesAsync(CancellationToken ct)
+    public async Task<int> CountVerifiedAccountsAsync(CancellationToken ct)
+    {
+        // Example: accounts where Verified = true
+        return (int)await _accounts.CountDocumentsAsync(a => a.IsVerified == true, cancellationToken: ct);
+    }
+
+    public async Task<int> CountActiveCustomersAsync(CancellationToken ct)
+    {
+        // Example: customers with at least 1 active account
+        var filter = Builders<Account>.Filter.Eq(a => a.IsActive, true);
+        var distinctCustomers = await _accounts.DistinctAsync<Guid>("CustomerId", filter, cancellationToken: ct);
+        var list = await distinctCustomers.ToListAsync(ct);
+        return list.Count;
+    }
+
+    public async Task<int> CountAccountsWithAlertAsync(CancellationToken ct)
+    {
+        // Example: accounts with balance < threshold
+        decimal threshold = 100; // or fetch from config
+        var filter = Builders<Account>.Filter.Lt(a => a.Balance, threshold);
+        return (int)await _accounts.CountDocumentsAsync(filter, cancellationToken: ct);
+    }
+
+  public Task<int> SaveChangesAsync(CancellationToken ct)
     {
         // MongoDB writes are immediate, no unit of work
         return Task.FromResult(0);
