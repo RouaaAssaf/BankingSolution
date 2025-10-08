@@ -64,6 +64,8 @@ builder.Services.AddCors();
 // --- Build app ---
 var app = builder.Build();
 
+app.UseMiddleware<ExceptionMiddleware>();
+
 // Enable CORS for all origins globally
 app.UseCors(policy =>
     policy

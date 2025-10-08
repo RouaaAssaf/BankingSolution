@@ -69,35 +69,7 @@ app.UseCors(policy =>
 
 // --- Middleware ---
 
-app.UseExceptionHandler(appBuilder =>
-{
-    appBuilder.Run(async context =>
-    {
-        context.Response.ContentType = "application/json";
-
-        var feature = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>();
-        if (feature != null)
-        {
-            var ex = feature.Error;
-
-            // Match specific error types
-            context.Response.StatusCode = ex switch
-            {
-                ArgumentException => StatusCodes.Status400BadRequest, // bad input
-                InvalidOperationException => StatusCodes.Status409Conflict, // conflict / duplicate
-                _ => StatusCodes.Status500InternalServerError
-            };
-
-            var result = new
-            {
-                error = ex.Message,
-                statusCode = context.Response.StatusCode
-            };
-
-            await context.Response.WriteAsJsonAsync(result);
-        }
-    });
-});
+app.UseMiddleware<ExceptionMiddleware>();
 
 
 app.UseSwagger();

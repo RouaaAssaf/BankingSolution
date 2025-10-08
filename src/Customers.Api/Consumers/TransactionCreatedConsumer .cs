@@ -87,6 +87,7 @@ namespace Customers.Api.Consumers
         }
 
         private async Task HandleTransactionCreatedEventAsync(TransactionCreatedEvent evt, CancellationToken stoppingToken)
+        
         {
             using var scope = _scopes.CreateScope();
             var customers = scope.ServiceProvider.GetRequiredService<ICustomerRepository>();

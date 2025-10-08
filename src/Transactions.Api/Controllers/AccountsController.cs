@@ -72,13 +72,16 @@ public class AccountsController : ControllerBase
         return Ok(result);
     }
 
-    [HttpGet("{accountId:guid}")]
-    public async Task<IActionResult> GetAccountById(Guid accountId, CancellationToken ct)
+    [HttpGet("{accountId}")]
+    public async Task<IActionResult> GetAccountById(string accountId, CancellationToken ct)
     {
-        var account = await _accountRepo.GetByIdAsync(accountId, ct);
+        if (!Guid.TryParse(accountId, out var id))
+            throw new DomainException("Invalid account ID format", 400);
+
+        var account = await _accountRepo.GetByIdAsync(id, ct);
 
         if (account == null)
-            return NotFound(new { Message = "Account not found" });
+            throw new KeyNotFoundException("Account not found"); // middleware will return 404
 
         return Ok(new AccountInfoResponse(
             AccountId: account.Id,
@@ -87,8 +90,10 @@ public class AccountsController : ControllerBase
             OpenedAt: account.OpenedAt,
             FirstName: account.FirstName,
             LastName: account.LastName
-       ));
+        ));
     }
+
+
     [HttpGet("/api/dashboard/summary")]
     public async Task<IActionResult> GetDashboardSummary(CancellationToken ct)
     {
