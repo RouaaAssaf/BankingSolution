@@ -55,6 +55,10 @@ namespace Banking.Infrastructure.Repositories.Mongo
             await _customers.ReplaceOneAsync(c => c.Id == customer.Id, customer, new ReplaceOptions { IsUpsert = false }, ct);
         }
 
+        public async Task DeleteAsync(Guid customerId, CancellationToken ct)
+        {
+            await _customers.DeleteOneAsync(c => c.Id == customerId, cancellationToken: ct);
+        }
         public Task<int> SaveChangesAsync(CancellationToken ct)
         {
             return Task.FromResult(0);

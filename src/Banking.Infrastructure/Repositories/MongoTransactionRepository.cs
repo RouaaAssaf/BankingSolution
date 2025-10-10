@@ -33,7 +33,15 @@ public class MongoTransactionRepository : ITransactionRepository
             .ToListAsync(ct);
     }
 
+    public async Task DeleteAsync(Guid transactionId, CancellationToken ct)
+    {
+        await _transactions.DeleteOneAsync(t => t.Id == transactionId, ct);
+    }
 
+    public async Task DeleteByAccountIdAsync(Guid accountId, CancellationToken ct)
+    {
+        await _transactions.DeleteManyAsync(t => t.AccountId == accountId, ct);
+    }
 
     public async Task AddAsync(Transaction transaction, CancellationToken ct)
     {

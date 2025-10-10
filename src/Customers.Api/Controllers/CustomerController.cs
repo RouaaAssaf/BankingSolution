@@ -1,7 +1,7 @@
 
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-
+using Banking.Application.Customers.Commands;
 namespace Banking.WebApi.Controllers;
 
 [ApiController]
@@ -31,5 +31,14 @@ public class CustomersController : ControllerBase
         // make sure you have a query handler that returns a list of customers
         return Ok(customers);
     }
+
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> DeleteCustomer(Guid id, CancellationToken ct)
+    {
+        var command = new DeleteCustomerCommand(id);
+        await _mediator.Send(command, ct);
+        return NoContent();
+    }
+
 
 }

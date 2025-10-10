@@ -1,4 +1,5 @@
 ﻿
+using Banking.Application.Abstractions;
 using Banking.Domain.Entities;
 using MongoDB.Driver;
 
@@ -101,7 +102,16 @@ public class MongoAccountRepository : IAccountRepository
         return (int)await _accounts.CountDocumentsAsync(filter, cancellationToken: ct);
     }
 
-  public Task<int> SaveChangesAsync(CancellationToken ct)
+    public async Task DeleteAsync(Guid accountId, CancellationToken ct)
+    {
+        // Delete all transactions for this account first
+        var filter = Builders<Transaction>.Filter.Eq(t => t.AccountId, accountId);
+        await _transactions.DeleteManyAsync(filter, cancellationToken: ct);
+
+        // Then delete the account itself
+        await _accounts.DeleteOneAsync(a => a.Id == accountId, ct);
+    }
+    public Task<int> SaveChangesAsync(CancellationToken ct)
     {
         // MongoDB writes are immediate, no unit of work
         return Task.FromResult(0);

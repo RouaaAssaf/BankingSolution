@@ -64,6 +64,15 @@ public class AccountsController : ControllerBase
         }
     }
 
+    [HttpDelete("delete/{transactionId:guid}")]
+    public async Task<IActionResult> DeleteTransaction(Guid transactionId)
+    {
+        await _transactionRepo.DeleteAsync(transactionId, CancellationToken.None);
+        return NoContent();
+    }
+
+
+
     [HttpGet("customers/{customerId:guid}/summary")]
     public async Task<IActionResult> GetCustomerSummary(Guid customerId, CancellationToken ct)
     {
@@ -92,6 +101,7 @@ public class AccountsController : ControllerBase
             LastName: account.LastName
         ));
     }
+
 
 
     [HttpGet("/api/dashboard/summary")]
@@ -131,7 +141,21 @@ public class AccountsController : ControllerBase
 
     }
 
+    [HttpDelete("{accountId:guid}")]
+    public async Task<IActionResult> DeleteAccount(Guid accountId, CancellationToken ct)
+    {
+        var account = await _accountRepo.GetByIdAsync(accountId, ct);
+        if (account == null)
+            return NotFound(new { Message = "Account not found" });
 
+        // Delete all transactions first
+        await _transactionRepo.DeleteByAccountIdAsync(accountId, ct);
+
+        // Delete the account (you need to implement this method in IAccountRepository)
+        await _accountRepo.DeleteAsync(accountId, ct);
+
+        return Ok(new { Message = $"Account {accountId} and its transactions were deleted successfully" });
+    }
 
 
 

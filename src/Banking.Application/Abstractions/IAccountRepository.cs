@@ -12,7 +12,7 @@ public interface IAccountRepository
     Task<int> CountActiveCustomersAsync(CancellationToken ct);
     Task<int> CountAccountsWithAlertAsync(CancellationToken ct);
     Task<int> CountVerifiedAccountsAsync(CancellationToken ct);
-
+    Task DeleteAsync(Guid accountId, CancellationToken ct);
     Task<int> SaveChangesAsync(CancellationToken ct);
     Task UpdateAsync(Account account, CancellationToken ct);
 }

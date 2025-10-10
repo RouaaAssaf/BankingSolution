@@ -7,6 +7,7 @@ using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
 using System.Reflection;
 using Transactions.Api.Consumers;
+using Accounts.Api.Consumers;
 
 
 
@@ -59,6 +60,8 @@ builder.Services.AddSingleton<IEventPublisher, RabbitMqEventPublisher>();
 
 // --- Register consumers ---
 builder.Services.AddHostedService<CustomerCreatedConsumer>();
+builder.Services.AddHostedService<CustomerDeletedConsumer>();
+
 
 builder.Services.AddCors();
 // --- Build app ---

@@ -36,3 +36,4 @@ public record AccountBalanceUpdatedEvent(
     DateTime UpdatedAt,
     int Version = 1
 );
+public record CustomerDeletedEvent(Guid CustomerId);

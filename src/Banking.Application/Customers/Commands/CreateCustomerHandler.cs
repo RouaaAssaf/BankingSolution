@@ -4,7 +4,7 @@ using Banking.Messaging;
 using Banking.Messaging.Events;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using Banking.Application.DTOs; 
+
 
 public class CreateCustomerHandler : IRequestHandler<CreateCustomerCommand, Guid>
 {
