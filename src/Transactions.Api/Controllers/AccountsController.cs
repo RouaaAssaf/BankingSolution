@@ -82,12 +82,9 @@ public class AccountsController : ControllerBase
     }
 
     [HttpGet("{accountId}")]
-    public async Task<IActionResult> GetAccountById(string accountId, CancellationToken ct)
+    public async Task<IActionResult> GetAccountById(Guid accountId, CancellationToken ct)
     {
-        if (!Guid.TryParse(accountId, out var id))
-            throw new DomainException("Invalid account ID format", 400);
-
-        var account = await _accountRepo.GetByIdAsync(id, ct);
+        var account = await _accountRepo.GetByIdAsync(accountId, ct);
 
         if (account == null)
             throw new KeyNotFoundException("Account not found"); // middleware will return 404
