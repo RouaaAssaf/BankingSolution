@@ -1,8 +1,5 @@
 ﻿using System.Text.Json;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.Http;
+using Transactions.Domain.Exceptions;
 
 public class ExceptionMiddleware
 {

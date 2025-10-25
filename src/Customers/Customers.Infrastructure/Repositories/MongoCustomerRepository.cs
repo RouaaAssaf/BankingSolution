@@ -1,6 +1,5 @@
 ﻿using Customers.Application.Interfaces;
 using Customers.Domain.Entities;
-using Microsoft.EntityFrameworkCore;
 using MongoDB.Driver;
 
 

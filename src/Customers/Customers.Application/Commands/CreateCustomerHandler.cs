@@ -3,6 +3,7 @@ using Customers.Domain.Entities;
 using Banking.Messaging;
 using Banking.Messaging.Events;
 using MediatR;
+using Customers.Domain.Exceptions;
 using Microsoft.Extensions.Logging;
 
 

@@ -1,6 +1,7 @@
 ﻿
 using Microsoft.AspNetCore.Http;
 
+namespace Customers.Domain.Exceptions;
 public class DomainException : Exception
 {
     public int StatusCode { get; }

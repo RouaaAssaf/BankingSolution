@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using Customers.Domain.Exceptions;
 
 
 public class ExceptionMiddleware

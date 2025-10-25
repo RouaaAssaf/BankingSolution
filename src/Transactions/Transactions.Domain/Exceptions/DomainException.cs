@@ -1,5 +1,6 @@
 ﻿
 using Microsoft.AspNetCore.Http;
+namespace Transactions.Domain.Exceptions;
 
 public class DomainException : Exception
 {
