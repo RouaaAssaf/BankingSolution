@@ -53,6 +53,15 @@ builder.Services.AddSingleton<IEventPublisher, RabbitMqEventPublisher>();
 // --- Register consumers ---
 builder.Services.AddHostedService<TransactionCreatedConsumer>();
 
+
+
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(8080); // Use HTTP only inside Docker
+});
+
+
 builder.Services.AddCors();
 // --- Build app ---
 var app = builder.Build();
